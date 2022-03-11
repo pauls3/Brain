@@ -109,4 +109,3 @@ class KeyboardListenerThread(Thread):
                 for outP in self.outPs:
                     outP.send(keyMsg) 
     
-

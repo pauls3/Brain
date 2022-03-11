@@ -49,6 +49,7 @@ from src.utils.remotecontrol.RemoteControlReceiverProcess   import RemoteControl
 enableStream        =  True
 enableCameraSpoof   =  False 
 enableRc            =  True
+# selfDrive           =  True
 
 # =============================== INITIALIZING PROCESSES =================================
 allProcesses = list()
@@ -88,6 +89,20 @@ if enableRc:
 
     rcProc = RemoteControlReceiverProcess([],[rcShS])
     allProcesses.append(rcProc)
+
+
+
+
+# ===================================== Self Drive =======================================
+# if selfDrive:
+#     rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
+
+#     # serial handler process
+#     shProc = SerialHandlerProcess([rcShR], [])
+#     allProcesses.append(shProc)
+
+#     rcProc = RemoteControlReceiverProcess([],[rcShS])
+#     allProcesses.append(rcProc)
 
 
 # ===================================== START PROCESSES ==================================

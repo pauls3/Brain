@@ -32,6 +32,8 @@ import socket
 from threading       import Thread
 
 from src.templates.workerprocess import WorkerProcess
+from src.utils.remotecontrol.RcBrainThread              import RcBrainThread
+
 
 class RemoteControlReceiverProcess(WorkerProcess):
     # ===================================== INIT =========================================
@@ -47,12 +49,14 @@ class RemoteControlReceiverProcess(WorkerProcess):
         """
 
         super(RemoteControlReceiverProcess,self).__init__( inPs, outPs)
+        self.rcBrain   =  RcBrainThread()
 
     # ===================================== RUN ==========================================
     def run(self):
         """Apply the initializing methods and start the threads
         """
-        self._init_socket()
+        # self._init_socket()
+        self._init_threads()
         super(RemoteControlReceiverProcess,self).run()
 
     # ===================================== INIT SOCKET ==================================
@@ -72,8 +76,9 @@ class RemoteControlReceiverProcess(WorkerProcess):
     def _init_threads(self):
         """Initialize the read thread to transmite the received messages to other processes. 
         """
-        readTh = Thread(name='ReceiverCommandThread',target = self._read_stream, args = (self.outPs, ))
-        self.threads.append(readTh)
+        # readTh = Thread(name='ReceiverCommandThread',target = self._read_stream, args = (self.outPs, ))
+        runCar = Thread(name='RunCar',target = self._run_stop, args = (self.outPs, ))
+        self.threads.append(runCar)
 
     # ===================================== READ STREAM ==================================
     def _read_stream(self, outPs):
@@ -86,6 +91,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
         """
         try:
             while True:
+
                 
                 bts, addr = self.server_socket.recvfrom(1024)
 
@@ -100,3 +106,21 @@ class RemoteControlReceiverProcess(WorkerProcess):
 
         finally:
             self.server_socket.close()
+
+
+
+    def _run_stop(self, outPs):
+       command =  self.rcBrain.getMessage('W')
+       command = json.dumps(command).encode()
+       for outP in outPs:
+           outP.send(command)
+
+       command =  self.rcBrain.getMessage('S')
+       command = json.dumps(command).encode()
+       for outP in outPs:
+           outP.send(command) 
+
+       command =  self.rcBrain.getMessage('R')
+       command = json.dumps(command).encode()
+       for outP in outPs:
+           outP.send(command) 

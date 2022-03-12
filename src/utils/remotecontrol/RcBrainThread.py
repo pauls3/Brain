@@ -172,7 +172,7 @@ class RcBrainThread:
         self._updateSteerAngle()
         self._updatePID(data)
         self._updateParameters(data)
-        self.displayInfo()
+        #self.displayInfo()
         
         return self._stateDict()        
 
@@ -351,3 +351,4 @@ class RcBrainThread:
             self.currentState[4] = False
 
         
+

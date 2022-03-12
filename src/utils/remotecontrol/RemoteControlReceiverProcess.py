@@ -28,6 +28,7 @@
 
 import json
 import socket
+import time
 
 from threading       import Thread
 
@@ -55,22 +56,10 @@ class RemoteControlReceiverProcess(WorkerProcess):
     def run(self):
         """Apply the initializing methods and start the threads
         """
-        # self._init_socket()
-        self._init_threads()
+        #self._init_threads()
+        #self._run_stop(self.outPs, )
         super(RemoteControlReceiverProcess,self).run()
 
-    # ===================================== INIT SOCKET ==================================
-    def _init_socket(self):
-        """Initialize the communication socket server.
-        """
-        self.port       =   12244
-        self.serverIp   =   '0.0.0.0'
-
-        self.server_socket = socket.socket(
-                                    family  = socket.AF_INET, 
-                                    type    = socket.SOCK_DGRAM
-                                )
-        self.server_socket.bind((self.serverIp, self.port))
 
     # ===================================== INIT THREADS =================================
     def _init_threads(self):
@@ -110,17 +99,27 @@ class RemoteControlReceiverProcess(WorkerProcess):
 
 
     def _run_stop(self, outPs):
-       command =  self.rcBrain.getMessage('W')
-       command = json.dumps(command).encode()
-       for outP in outPs:
-           outP.send(command)
-
-       command =  self.rcBrain.getMessage('S')
-       command = json.dumps(command).encode()
-       for outP in outPs:
-           outP.send(command) 
-
-       command =  self.rcBrain.getMessage('R')
-       command = json.dumps(command).encode()
-       for outP in outPs:
-           outP.send(command) 
+       commands = []
+       try:
+           command =  self.rcBrain.getMessage('p.p')
+           encode = json.dumps(command).encode()
+           decode = encode.decode()
+           command = json.loads(decode)
+           for outP in outPs:
+               outP.send(command)
+           time.sleep(2)
+           
+           
+           for ii in commands:
+               command =  self.rcBrain.getMessage(ii)
+               encode = json.dumps(command).encode()
+               decode = encode.decode()
+               command = json.loads(decode)
+               for outP in outPs:
+                   outP.send(command)
+               
+               time.sleep(2)        
+    
+           
+       except Exception as e:
+           print(e)

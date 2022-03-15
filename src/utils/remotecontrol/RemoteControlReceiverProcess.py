@@ -31,6 +31,7 @@ import socket
 import time
 
 from threading       import Thread
+from multiprocessing import Pipe
 
 from src.templates.workerprocess import WorkerProcess
 from src.utils.remotecontrol.RcBrainThread              import RcBrainThread
@@ -51,6 +52,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
 
         super(RemoteControlReceiverProcess,self).__init__( inPs, outPs)
         self.rcBrain   =  RcBrainThread()
+        self.lisBrR, self.lisBrS = Pipe(duplex=False)
 
     # ===================================== RUN ==========================================
     def run(self):
@@ -58,16 +60,24 @@ class RemoteControlReceiverProcess(WorkerProcess):
         """
         #self._init_threads()
         #self._run_stop(self.outPs, )
+        #self._run_stop(self.outPs, )
         super(RemoteControlReceiverProcess,self).run()
 
+        
 
     # ===================================== INIT THREADS =================================
     def _init_threads(self):
         """Initialize the read thread to transmite the received messages to other processes. 
         """
+        #self.listener.daemon = self.daemon
+        #self.threads.append(self.listener)
+        #sendTh = Thread(name = 'SendCommandThread',target = self._send_command_thread, args=(self.lisBrR, ),daemon=self.daemon)
+        
+        
         # readTh = Thread(name='ReceiverCommandThread',target = self._read_stream, args = (self.outPs, ))
         runCar = Thread(name='RunCar',target = self._run_stop, args = (self.outPs, ))
         self.threads.append(runCar)
+        
 
     # ===================================== READ STREAM ==================================
     def _read_stream(self, outPs):
@@ -99,27 +109,68 @@ class RemoteControlReceiverProcess(WorkerProcess):
 
 
     def _run_stop(self, outPs):
-       commands = []
-       try:
-           command =  self.rcBrain.getMessage('p.p')
-           encode = json.dumps(command).encode()
-           decode = encode.decode()
-           command = json.loads(decode)
-           for outP in outPs:
-               outP.send(command)
-           time.sleep(2)
-           
-           
+       #commands = ['p.w', 'p.w', 'p.s', 'p.s', 'p.s', 'p.s', 'p.r', 'p.r', 'p.r']
+       #commands = ['p.w', 'p.s', 'p.s', 'p.w', 'p.r']
+       
+       f = 'p.w'       # forward
+       b = 'p.s'       # reverse/back
+       l = 'p.a'
+       r = 'p.d'
+       s = 'p.stop'
+       
+
+       commands = [f, s, b, s, f, s, l, l, r, r]
+       try:           
+           self._start_pid(outPs, )
+           #time.sleep(2)
            for ii in commands:
-               command =  self.rcBrain.getMessage(ii)
-               encode = json.dumps(command).encode()
-               decode = encode.decode()
-               command = json.loads(decode)
-               for outP in outPs:
-                   outP.send(command)
-               
-               time.sleep(2)        
-    
-           
+               #self._start_pid(outPs, )
+               self._send_command(outPs, ii, )
+
+               time.sleep(2)
+       
+           print('---\n---')              
        except Exception as e:
            print(e)
+    
+    
+    def _start_pid(self, outPs):
+       command_ =  self.rcBrain.getMessage('p.p')
+       if command_ is not None:
+          encode = json.dumps(command_).encode()
+          decode = encode.decode()
+          command = json.loads(decode)
+          for outP in outPs:
+             outP.send(command)
+       time.sleep(2)
+    
+    
+    def _send_command(self, outPs, command):
+        print(command)
+        command_ =  self.rcBrain.getMessage(command)
+        if command_ is not None:
+           encode = json.dumps(command_).encode()
+           decode = encode.decode()
+           command = json.loads(decode)
+           for ii in range(0,5):
+               for outP in outPs:
+                   outP.send(command)
+        #time.sleep(3)
+    
+           
+    def _send_command_thread(self, inP):
+        """Transmite the command to the remotecontrol receiver. 
+        
+        Parameters
+        ----------
+        inP : Pipe
+            Input pipe. 
+        """
+        while True:
+            key = inP.recv()
+
+            command = self.rcBrain.getMessage(key)
+            if command is not None and command != 'stop':
+                command = json.dumps(command).encode()
+
+                self.client_socket.sendto(command,(self.serverIp,self.port))

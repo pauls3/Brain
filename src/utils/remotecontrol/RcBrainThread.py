@@ -44,7 +44,8 @@ class RcBrainConfigParams:
             The step value of speed
         """
         self.maxSteerAngle = maxSteerAngle
-        self.maxSpeed = maxSpeed
+        #self.maxSpeed = maxSpeed
+        self.maxSpeed = 0.05
         self.steerAngleStep = steerAngleStep
         self.speedStep = speedStep
         self.kpStep = kpStep
@@ -61,10 +62,14 @@ class RcBrainThread:
         self.speed = 0.0
         self.steerAngle = 0.0
         self.pida = False
-        self.pids_kp = 0.115000
-        self.pids_ki = 0.810000
-        self.pids_kd = 0.000222
+        self.pids_kp = 0.150000
+        self.pids_ki = 0.850000
+        self.pids_kd = 0.0052
         self.pids_tf = 0.040000
+        #self.pids_kp = 0.115000
+        #self.pids_ki = 0.810000
+        #self.pids_kd = 0.000222
+        #self.pids_tf = 0.040000
 
         #----------------- CONSTANT VALUES --------------------
         #this values do not change
@@ -76,7 +81,8 @@ class RcBrainThread:
 
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
-        self.default_configParam = RcBrainConfigParams(20.5,20.0,1.5,2.0, 0.001, 0.001, 0.000001)
+        # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
+        self.default_configParam = RcBrainConfigParams(20.5,9.0, 3.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -120,15 +126,21 @@ class RcBrainThread:
         # BRAKE command
         if self.currentState[4]:
             data['action']        =  '3'
-            data['steerAngle']    =  float(self.steerAngle)
+            data['speed']         = float(0)
+            
+            #data['steerAngle']    =  float(self.steerAngle)
         # SPEED command
         elif self.currentState[0] or self.currentState[1]:
             data['action']        =  '1'
             data['speed']         =  float(self.speed/100.0)
+            self.currentState[0] = False
+            self.currentState[1] = False
         # STEERING command
         elif self.currentState[2] or self.currentState[3]:
             data['action']        =  '2'
             data['steerAngle']    =  float(self.steerAngle)
+            self.currentState[2] = False
+            self.currentState[3] = False
         # PID activation command
         elif self.currentState[5]:
             data['action']        =  '4'
@@ -165,7 +177,7 @@ class RcBrainThread:
         string
             The encoded command.
         """
-
+        
         self._updateMotionState(data)
 
         self._updateSpeed()
@@ -173,6 +185,8 @@ class RcBrainThread:
         self._updatePID(data)
         self._updateParameters(data)
         #self.displayInfo()
+        
+        print(self.currentState)
         
         return self._stateDict()        
 
@@ -200,6 +214,7 @@ class RcBrainThread:
                     self.speed = self.configParam.maxSpeed
                 else:
                     self.speed += self.configParam.speedStep
+            #self.currentState[0] = False
         #backwards
         elif self.currentState[1]:
             if self.speed == 0:
@@ -247,10 +262,11 @@ class RcBrainThread:
             Keyboard event encoded in string.
         """
         #--------------- RESET ---------------------------------
-        if currentKey == 'p.r':
+        if currentKey == 'p.stop':
             self.speed = 0.0
-            self.steerAngle = 0.0
-            self.configParam = copy.deepcopy(self.default_configParam)  
+            #self.steerAngle = 0.0
+            self.configParam = copy.deepcopy(self.default_configParam)
+            
         #--------------- MAX SPEED ------------------------------
         elif currentKey == 'p.t':
             if self.configParam.maxSpeed < self.limit_configParam.maxSpeed:
@@ -345,10 +361,10 @@ class RcBrainThread:
         elif currentKey == 'r.d':
             self.currentState[3] = False
             self.currentState[7] = True
-        elif currentKey == 'p.space':
-            self.currentState[4] = True
-        elif currentKey == 'r.space':
-            self.currentState[4] = False
+        elif currentKey == 'p.stop':
+            self.currentState[0] = True
+        elif currentKey == 'r.r':
+            self.currentState[0] = False
 
         
 

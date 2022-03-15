@@ -101,6 +101,9 @@ class RemoteControlTransmitterProcess(Thread):
             key = inP.recv()
 
             command = self.rcBrain.getMessage(key)
+
+            # print(inP.recv())
+            print(key + " =============================")
             if command is not None:
                 command = json.dumps(command).encode()
 

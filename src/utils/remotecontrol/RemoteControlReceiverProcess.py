@@ -94,17 +94,25 @@ class RemoteControlReceiverProcess(WorkerProcess):
         stop = 'stop'
         straight = 'straight'
        
-
-        #commands = [f, s, b, s, f, s, l, l, r, r]
+        jj = 0
+        commands = []
+        #commands = [f, r, r, r, f, stop, straight, l, l, l, f, straight, stop]
         try:           
             self._start_pid(outPs, )
             time.sleep(1)
 
-        #    for ii in commands:
-            while True:
+
+            for ii in commands:
+            #while True:
                 # take car commands (global)
-                if self.COMMAND != "null":
-                    print("null")
+                #if self.COMMAND != "null":
+                #    print("null")
+                self._send_command(outPs, ii)
+                if ii == 'forward':
+                    time.sleep(10)
+                elif ii == 'stop':
+                    time.sleep(1)
+                jj = jj + 1
 
        
         except Exception as e:
@@ -131,7 +139,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
            encode = json.dumps(command_).encode()
            decode = encode.decode()
            command = json.loads(decode)
-           for ii in range(0,5):
+           for ii in range(0,7):
                for outP in outPs:
                    outP.send(command)
         #time.sleep(3)
@@ -153,3 +161,5 @@ class RemoteControlReceiverProcess(WorkerProcess):
                 command = json.dumps(command).encode()
 
                 self.client_socket.sendto(command,(self.serverIp,self.port))
+
+

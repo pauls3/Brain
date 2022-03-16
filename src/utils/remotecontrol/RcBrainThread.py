@@ -44,8 +44,8 @@ class RcBrainConfigParams:
             The step value of speed
         """
         self.maxSteerAngle = maxSteerAngle
-        #self.maxSpeed = maxSpeed
-        self.maxSpeed = 0.05
+        self.maxSpeed = maxSpeed
+        #self.maxSpeed = 0.05
         self.steerAngleStep = steerAngleStep
         self.speedStep = speedStep
         self.kpStep = kpStep
@@ -76,13 +76,13 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.startSpeed         =   15.0
+        self.startSpeed         =   12.0
         self.startSteerAngle    =   1.0
 
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
-        self.default_configParam = RcBrainConfigParams(20.5,9.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5,12.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -125,9 +125,9 @@ class RcBrainThread:
         data = {}
         # BRAKE command
         if self.currentState[4]:
-            data['action']        =  '3'
+            data['action']        =  '1'
             data['speed']         = float(0)
-            
+            self.currentState[4] = False
             #data['steerAngle']    =  float(self.steerAngle)
         # SPEED command
         elif self.currentState[0] or self.currentState[1]:
@@ -350,14 +350,16 @@ class RcBrainThread:
             self.currentState[0] = True
         elif currentKey == 'reverse':
             self.currentState[1] = True
-        elif currentKey == 'right':
-            self.currentState[2] = True
         elif currentKey == 'left':
+            self.currentState[2] = True
+        elif currentKey == 'right':
             self.currentState[3] = True
         elif currentKey == 'stop':
-            self.currentState[0] = True
+            self.currentState[4] = True
         elif currentKey == 'straight':
             self.currentState[7] = True
 
         
+
+
 

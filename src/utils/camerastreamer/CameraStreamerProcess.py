@@ -34,6 +34,7 @@ import numpy as np
 from threading import Thread
 
 import cv2
+import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
 
@@ -58,7 +59,7 @@ class CameraStreamerProcess(WorkerProcess):
     def run(self):
         """Apply the initializing methods and start the threads.
         """
-        self._init_socket()
+        #self._init_socket()
         super(CameraStreamerProcess,self).run()
 
     # ===================================== INIT THREADS =================================
@@ -114,14 +115,33 @@ class CameraStreamerProcess(WorkerProcess):
                 data   =  image.tobytes()
                 size   =  len(data)
 
-                self.connection.write(struct.pack("<L",size))
-                self.connection.write(data)
+                stencil = np.zeros_like(image[:,:,0])
+                # specify coordinates of the polygon
+                polygon = np.array([[50,270], [220,160], [360,160], [480,270]])
+
+                # fill polygon with ones
+                cv2.fillConvexPoly(stencil, polygon, 1)
+
+                plt.figure(figsize=(10,10))
+                plt.imshow(stencil, cmap= "gray")
+                plt.show()
+
+
+                # ----------------------- show images ------------------------
+                cv2.imshow('Image', image)
+                cv2.waitKey(1)
+
+            
+            
+
+                #self.connection.write(struct.pack("<L",size))
+                #self.connection.write(data)
 
             except Exception as e:
                 print("CameraStreamer failed to stream images:",e,"\n")
                 # Reinitialize the socket for reconnecting to client.  
-                self.connection = None
-                self._init_socket()
+                #self.connection = None
+                #self._init_socket()
                 pass
 
             

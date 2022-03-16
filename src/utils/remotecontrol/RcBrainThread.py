@@ -76,13 +76,13 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.startSpeed         =   9.0
+        self.startSpeed         =   15.0
         self.startSteerAngle    =   1.0
 
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
-        self.default_configParam = RcBrainConfigParams(20.5,9.0, 3.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5,9.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -231,8 +231,11 @@ class RcBrainThread:
     def _updateSteerAngle(self):
         """Update the steering angle based on the current state and the keyboard event.
         """
-        #left steer
-        if self.currentState[2] == True:
+        # straighten out
+        if self.currentState[7]:
+                self.steerAngle = 0
+        # left steer
+        elif self.currentState[2] == True:
             if self.steerAngle == 0:
                 self.steerAngle = -self.startSteerAngle
             elif self.steerAngle > -self.configParam.maxSteerAngle:
@@ -241,7 +244,7 @@ class RcBrainThread:
                 else:
                     self.steerAngle -= self.configParam.steerAngleStep 
         #right steer    
-        if self.currentState[3] == True:
+        elif self.currentState[3] == True:
             if self.steerAngle == 0:
                 self.steerAngle = self.startSteerAngle
             elif self.steerAngle < self.configParam.maxSteerAngle:
@@ -249,8 +252,8 @@ class RcBrainThread:
                     self.steerAngle = self.configParam.maxSteerAngle
                 else:
                     self.steerAngle += self.configParam.steerAngleStep
-        elif not self.currentState[2] and not self.currentState[3]:
-                self.steerAngle = 0
+        #elif not self.currentState[2] and not self.currentState[3]:
+        #        self.steerAngle = 0
 
     # ===================================== UPDATE PARAMS ================================
     def _updateParameters(self, currentKey):
@@ -343,28 +346,18 @@ class RcBrainThread:
         currentKey : string 
             Encoded keyboard event.
         """
-        if currentKey == 'p.w':
+        if currentKey == 'forward':
             self.currentState[0] = True
-        elif currentKey == 'r.w':
-            self.currentState[0] = False
-        elif currentKey == 'p.s':
+        elif currentKey == 'reverse':
             self.currentState[1] = True
-        elif currentKey == 'r.s':
-            self.currentState[1] = False
-        elif currentKey == 'p.a':
+        elif currentKey == 'right':
             self.currentState[2] = True
-        elif currentKey == 'r.a':
-            self.currentState[2] = False
-            self.currentState[7] = True
-        elif currentKey == 'p.d':
+        elif currentKey == 'left':
             self.currentState[3] = True
-        elif currentKey == 'r.d':
-            self.currentState[3] = False
-            self.currentState[7] = True
-        elif currentKey == 'p.stop':
+        elif currentKey == 'stop':
             self.currentState[0] = True
-        elif currentKey == 'r.r':
-            self.currentState[0] = False
+        elif currentKey == 'straight':
+            self.currentState[7] = True
 
         
 

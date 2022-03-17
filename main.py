@@ -45,86 +45,76 @@ from src.hardware.serialhandler.SerialHandlerProcess        import SerialHandler
 from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
 from src.utils.remotecontrol.RemoteControlReceiverProcess   import RemoteControlReceiverProcess
 
-# =============================== CONFIG =================================================
-enableStream        =  True
-enableCameraSpoof   =  False 
-enableRc            =  True
-# selfDrive           =  True
+def main():
+    # =============================== CONFIG =================================================
+    enableStream        =  True
+    enableCameraSpoof   =  False 
+    enableRc            =  True
+    
+    COMMAND = 0
 
-# =============================== INITIALIZING PROCESSES =================================
-allProcesses = list()
+    # =============================== INITIALIZING PROCESSES =================================
+    allProcesses = list()
 
-# =============================== HARDWARE ===============================================
-if enableStream:
-    camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
+    inCmd, outCmd   = Pipe(duplex = False)
+    # =============================== HARDWARE ===============================================
+    if enableStream:
+        camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
 
-    if enableCameraSpoof:
-        camSpoofer = CameraSpooferProcess([],[camStS],'vid')
-        allProcesses.append(camSpoofer)
+        if enableCameraSpoof:
+            camSpoofer = CameraSpooferProcess([],[camStS],'vid')
+            allProcesses.append(camSpoofer)
 
-    else:
-        camProc = CameraProcess([],[camStS])
-        allProcesses.append(camProc)
-
-    streamProc = CameraStreamerProcess([camStR], [])
-    allProcesses.append(streamProc)
-
-
-# =============================== DATA ===================================================
-#LocSys client process
-# LocStR, LocStS = Pipe(duplex = False)           # LocSys  ->  brain
-# from data.localisationsystem.locsys import LocalisationSystemProcess
-# LocSysProc = LocalisationSystemProcess([], [LocStS])
-# allProcesses.append(LocSysProc)
-
-
-
-# =============================== CONTROL =================================================
-if enableRc:
-    rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
-
-    # serial handler process
-    shProc = SerialHandlerProcess([rcShR], [])
-    allProcesses.append(shProc)
-
-    rcProc = RemoteControlReceiverProcess([],[rcShS])
-    allProcesses.append(rcProc)
-
-
-
-
-# ===================================== Self Drive =======================================
-# if selfDrive:
-#     rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
-
-#     # serial handler process
-#     shProc = SerialHandlerProcess([rcShR], [])
-#     allProcesses.append(shProc)
-
-#     rcProc = RemoteControlReceiverProcess([],[rcShS])
-#     allProcesses.append(rcProc)
-
-
-# ===================================== START PROCESSES ==================================
-print("Starting the processes!",allProcesses)
-for proc in allProcesses:
-    proc.daemon = True
-    proc.start()
-
-
-# ===================================== STAYING ALIVE ====================================
-blocker = Event()  
-
-try:
-    blocker.wait()
-except KeyboardInterrupt:
-    print("\nCatching a KeyboardInterruption exception! Shutdown all processes.\n")
-    for proc in allProcesses:
-        if hasattr(proc,'stop') and callable(getattr(proc,'stop')):
-            print("Process with stop",proc)
-            proc.stop()
-            proc.join()
         else:
-            print("Process witouth stop",proc)
-            proc.terminate()
-            proc.join()
+            camProc = CameraProcess([],[camStS])
+            allProcesses.append(camProc)
+
+        streamProc = CameraStreamerProcess([camStR], [outCmd])
+        allProcesses.append(streamProc)
+
+
+    # =============================== DATA ===================================================
+    #LocSys client process
+    # LocStR, LocStS = Pipe(duplex = False)           # LocSys  ->  brain
+    # from data.localisationsystem.locsys import LocalisationSystemProcess
+    # LocSysProc = LocalisationSystemProcess([], [LocStS])
+    # allProcesses.append(LocSysProc)
+
+
+    # =============================== CONTROL =================================================
+    if enableRc:
+        rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
+
+        # serial handler process
+        shProc = SerialHandlerProcess([rcShR], [])
+        allProcesses.append(shProc)
+
+        rcProc = RemoteControlReceiverProcess([inCmd],[rcShS])
+        allProcesses.append(rcProc)
+
+
+    # ===================================== START PROCESSES ==================================
+    print("Starting the processes!",allProcesses)
+    for proc in allProcesses:
+        proc.daemon = True
+        proc.start()
+
+    # ===================================== STAYING ALIVE ====================================
+    blocker = Event()  
+
+    try:
+        blocker.wait()
+    except KeyboardInterrupt:
+        print("\nCatching a KeyboardInterruption exception! Shutdown all processes.\n")
+        for proc in allProcesses:
+            if hasattr(proc,'stop') and callable(getattr(proc,'stop')):
+                print("Process with stop",proc)
+                proc.stop()
+                proc.join()
+            else:
+                print("Process witouth stop",proc)
+                proc.terminate()
+                proc.join()
+            
+if __name__ == "__main__":
+    main()

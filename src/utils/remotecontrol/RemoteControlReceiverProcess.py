@@ -70,7 +70,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
     def _init_threads(self):
         """Initialize the read thread to transmite the received messages to other processes. 
         """
-        runCar = Thread(name='RunCar',target = self._run_car, args = (self.outPs, ))
+        runCar = Thread(name='RunCar',target = self._run_car, args = (self.outPs, self.inPs, ))
         self.threads.append(runCar)
     
 
@@ -86,7 +86,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
         return [f, b]
 
 
-    def _run_car(self, outPs):       
+    def _run_car(self, outPs, inP):       
         f = 'forward'      
         b = 'reverse'      
         l = 'left'
@@ -101,18 +101,29 @@ class RemoteControlReceiverProcess(WorkerProcess):
             self._start_pid(outPs, )
             time.sleep(1)
 
+            
+           
+            while True:
+                
+                for ii in self.inPs:
+                    for cmd in ii.recv():
+                        self._send_command(outPs, cmd)
+                
+                #time.sleep(0.5)
 
-            for ii in commands:
+           
+           
+            #for ii in commands:
             #while True:
                 # take car commands (global)
                 #if self.COMMAND != "null":
                 #    print("null")
-                self._send_command(outPs, ii)
-                if ii == 'forward':
-                    time.sleep(10)
-                elif ii == 'stop':
-                    time.sleep(1)
-                jj = jj + 1
+            #    self._send_command(outPs, ii)
+            #    if ii == 'forward':
+            #        time.sleep(20)
+            #    elif ii == 'stop':
+            #        time.sleep(1)
+            #    jj = jj + 1
 
        
         except Exception as e:
@@ -120,13 +131,15 @@ class RemoteControlReceiverProcess(WorkerProcess):
     
 
     def _start_pid(self, outPs):
-       command_ =  self.rcBrain.getMessage('p.p')
-       if command_ is not None:
-          encode = json.dumps(command_).encode()
-          decode = encode.decode()
-          command = json.loads(decode)
-          for outP in outPs:
-             outP.send(command)
+       cmds = ['pid', 'stop','straight']
+       for ii in cmds:
+           command_ =  self.rcBrain.getMessage(ii)
+           if command_ is not None:
+              encode = json.dumps(command_).encode()
+              decode = encode.decode()
+              command = json.loads(decode)
+              for outP in outPs:
+                 outP.send(command)
         
 
        time.sleep(1)
@@ -161,5 +174,4 @@ class RemoteControlReceiverProcess(WorkerProcess):
                 command = json.dumps(command).encode()
 
                 self.client_socket.sendto(command,(self.serverIp,self.port))
-
 

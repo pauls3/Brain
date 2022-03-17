@@ -70,38 +70,15 @@ class CameraStreamerProcess(WorkerProcess):
     def _init_threads(self):
         """Initialize the sending thread.
         """
+        
         if self._blocker.is_set():
             return
-        streamTh = Thread(name='StreamSendingThread',target = self._send_thread, args= (self.inPs[0], ))
+        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs[0], self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
-
-    # ===================================== INIT SOCKET ==================================
-    def _init_socket(self):
-        """Initialize the socket client. 
-        """
-        self.serverIp   =  '192.168.1.102' # PC ip
-        self.port       =  2244            # com port
-
-        self.client_socket = socket.socket()
-        self.connection = None
-        # Trying repeatedly to connect the camera receiver.
-        try:
-            while self.connection is None and not self._blocker.is_set():
-                try:
-                    self.client_socket.connect((self.serverIp, self.port))
-                    self.client_socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-                    self.connection = self.client_socket.makefile('wb') 
-                except ConnectionRefusedError as error:
-                    time.sleep(0.5)
-                    pass
-        except KeyboardInterrupt:
-            self._blocker.set()
-            pass
-
         
     # ===================================== SEND THREAD ==================================
-    def _send_thread(self, inP):
+    def _process_image(self, inP, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -115,83 +92,47 @@ class CameraStreamerProcess(WorkerProcess):
         stencil = stencil.astype('uint8')
         # specify coordinates of the polygon
         #polygon = np.array([[50,270], [220,160], [360,160], [480,270]])
-        polygon = np.array([[0, 480], [0,300], [75,230], [550,230], [640,300], [680, 480]])
+        polygon = np.array([[0, 480], [0,300], [50,170], [590,170], [640,300], [640, 480]])
         cv2.fillConvexPoly(stencil, polygon, 1)
+        #ii = 0
+        cmdOut = "none"
         while True:
             try:
+                # get image
                 stamps, image = inP.recv()
-                 
-                #result, image = cv2.imencode('.jpg', image, encode_param)
-                #data   =  image.tobytes()
-                #size   =  len(data)
-
-                
-                #plt.figure(figsize=(15,15))
-                #plt.imshow(stencil, cmap= "gray")
-                #f, axarr = plt.subplots(2, figsize=(10,10))
-                #axarr[0].imshow(stencil, cmap= "gray")
-                #axarr[1].imshow(image)
-                
-                #plt.imshow(image)
-                
-                #plt.show()
-                #plt.show(block=False)
-                #plt.pause(3)
-                #plt.close()
-                #print(stencil.shape)
-                #print(image.shape)
-
-                img_crop = cv2.bitwise_and(image, image, mask=stencil)
-                # ----------------------- show images ------------------------
-                #RGB_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB)
-                #cv2.imshow('Image', RGB_img)
-                #RGB_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                #cv2.imshow('Image', RGB_img)
-                
-                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                blur_img = cv2.blur(img_crop_gray, (10,10))
-                ret, thresh = cv2.threshold(blur_img, 125, 170, cv2.THRESH_BINARY) 
-                
-                #RGB_img = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
-                #cv2.imshow('Image', RGB_img)
-                
-                #thresh_gray = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
-                lines = cv2.HoughLinesP(thresh, 1, np.pi/180, 50, maxLineGap=200)
-                #dmy = image[:,:,0].copy()
-                
-                
+                # convert to grayscale
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                #dmy = np.zeros((self.HEIGHT, self.WIDTH, 3))
-                dmy = cv2.cvtColor(gray_img, cv2.COLOR_GRAY2RGB) 
+                # crop with mask
+                #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
+                img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                # convert to grayscale
+                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                # blur
+                blur_img = cv2.blur(img_crop_gray, (10,10))
+                # get threshold
+                ret, thresh = cv2.threshold(blur_img, 125, 170, cv2.THRESH_BINARY) 
+                # get lines
+                lines = cv2.HoughLinesP(thresh, 1, np.pi/180, 50, maxLineGap=200)
                 
-                #if lines is not None:
-                #    for line in lines:
-                #        x1, y1, x2, y2 = line[0]
-                #        if x1 != x2:
-                #            cv2.line(dmy, (x1, y1), (x2, y2), (255, 0, 0), 3)
+                # convert gray to rgb (3 channels for gray)
+                rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                 
-                # draw center line
-                #cv2.line(dmy, (int(self.WIDTH/2), self.HEIGHT), (int(self.WIDTH/2), self.HEIGHT-100), (0,0,255), 3)
-                
-                
-                
-                #cv2.imshow('Image', dmy)
-                #RGB_img = cv2.cvtColor(dmy, cv2.COLOR_BGR2RGB)
-                #cv2.imshow('Image', gray_img)
-                
+                # get lane lines
                 lane_lines = self._avg_slope_intersect(lines)
-                lane_lines_img = self._display_lines(dmy, lane_lines)
-                
-                #plt.imshow(lane_lines_img)
-                #plt.show()
+                # draw lines to grayscale image
+                lane_lines_img, commands = self._display_lines(rgb_img, lane_lines)
                 
                 cv2.imshow('Image', lane_lines_img)
-                cv2.waitKey(100)
+                cv2.waitKey(1)
+                
+                
+                for outP in outPs:
+                    #print(outP)
+                    #outP.send(ii)
+                    outP.send(commands)
 
-
-                #self.connection.write(struct.pack("<L",size))
-                #self.connection.write(data)
-
+                #ii = ii + 1
+                #time.sleep(1)
             except Exception as e:
                 print("CameraStreamer failed to stream images:",e,"\n")
                 # Reinitialize the socket for reconnecting to client.  
@@ -253,6 +194,7 @@ class CameraStreamerProcess(WorkerProcess):
 
 
     def _display_lines(self, frame, lines):
+        
         line_img = np.zeros((self.HEIGHT, self.WIDTH, 3))
         if lines is not None:
             for line in lines:
@@ -262,14 +204,73 @@ class CameraStreamerProcess(WorkerProcess):
         frame = frame.astype('uint8')
         line_img = line_img.astype('uint8')
         
+        commands = []
+        ###
         # draw center line
-        _, _, left_x2, _ = lines[0][0]
-        _, _, right_x2, _ = lines[1][0]
-
-        mid = int(self.WIDTH / 2)
-        x_offset = (left_x2 + right_x2) / 2
-        y_offset = int(self.HEIGHT / 2)
-        cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
+        ###
+        # Detected 2 lanes
+        if len(lines) == 2:
+            left_x1, _, left_x2, _ = lines[0][0]
+            right_x1, _, right_x2, _ = lines[1][0]
+            #print(lines[0][0])
+            x_offset = (left_x2 + right_x2) / 2
+            y_offset = int(self.HEIGHT / 2)
+            if abs(left_x1 - right_x1) < 200:
+                mid = int(self.WIDTH / 2)
+                x1, _, x2, _ = lines[0][0]
+                x_offset = int(x2 - x1)
+                #print(x_offset)
+                x_offset = x_offset + mid
+                y_offset = int(self.HEIGHT / 2)
+                # draw center line
+                cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
+                #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
+                overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
+                commands = self._steering_cmd(x_offset, )
+            else:
+                # draw center line
+                cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
+                #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
+                overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
+                commands = self._steering_cmd(x_offset, )
+        # detected one lane
+        elif len(lines) == 1:
+            mid = int(self.WIDTH / 2)
+            x1, _, x2, _ = lines[0][0]
+            x_offset = int(x2 - x1)
+            #print(x_offset)
+            x_offset = x_offset + mid
+            y_offset = int(self.HEIGHT / 2)
+            # draw center line
+            cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
+            #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
+            overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
+            commands = self._steering_cmd(x_offset, )
+        # No lanes detected
+        else:
+            overlay_img = frame
+        #cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
         
-        overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-        return overlay_img
+        #overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
+        return overlay_img, commands
+    
+    
+    
+    def _steering_cmd(self, x1):
+        if x1 <= 200:
+            return ['forward', 'right']
+        elif x1 >= 450:
+            return ['forward', 'left']
+        else:
+            return ['forward', 'straight']
+    
+    
+    def _get_slope(self, x1, y1, x2, y2):
+        x1 = float(x1)
+        x2 = float(x2)
+        y1 = float(y1)
+        y2 = float(y2)
+        
+        
+        #return (y2 - y1) / (x2 - x1)
+        return x1

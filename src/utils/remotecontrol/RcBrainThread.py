@@ -76,13 +76,13 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.startSpeed         =   12.0
+        self.startSpeed         =   14.0
         self.startSteerAngle    =   1.0
 
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
-        self.default_configParam = RcBrainConfigParams(20.5,12.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5, 14.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -236,22 +236,24 @@ class RcBrainThread:
                 self.steerAngle = 0
         # left steer
         elif self.currentState[2] == True:
-            if self.steerAngle == 0:
-                self.steerAngle = -self.startSteerAngle
-            elif self.steerAngle > -self.configParam.maxSteerAngle:
-                if self.configParam.maxSteerAngle + self.steerAngle < self.configParam.steerAngleStep:
-                    self.steerAngle = - self.configParam.maxSteerAngle
-                else:
-                    self.steerAngle -= self.configParam.steerAngleStep 
+            #if self.steerAngle == 0:
+            #    self.steerAngle = -self.startSteerAngle
+            #elif self.steerAngle > -self.configParam.maxSteerAngle:
+            #    if self.configParam.maxSteerAngle + self.steerAngle < self.configParam.steerAngleStep:
+            #        self.steerAngle = - self.configParam.maxSteerAngle
+            #    else:
+            #        self.steerAngle -= self.configParam.steerAngleStep
+            self.steerAngle = - self.configParam.maxSteerAngle
         #right steer    
         elif self.currentState[3] == True:
-            if self.steerAngle == 0:
-                self.steerAngle = self.startSteerAngle
-            elif self.steerAngle < self.configParam.maxSteerAngle:
-                if self.configParam.maxSteerAngle - self.steerAngle < self.configParam.steerAngleStep:
-                    self.steerAngle = self.configParam.maxSteerAngle
-                else:
-                    self.steerAngle += self.configParam.steerAngleStep
+            #if self.steerAngle == 0:
+            #    self.steerAngle = self.startSteerAngle
+            #elif self.steerAngle < self.configParam.maxSteerAngle:
+            #    if self.configParam.maxSteerAngle - self.steerAngle < self.configParam.steerAngleStep:
+            #        self.steerAngle = self.configParam.maxSteerAngle
+            #    else:
+            #        self.steerAngle += self.configParam.steerAngleStep
+            self.steerAngle = self.configParam.steerAngleStep
         #elif not self.currentState[2] and not self.currentState[3]:
         #        self.steerAngle = 0
 
@@ -309,7 +311,7 @@ class RcBrainThread:
             Keyboard event encoded in string.
         """      
         #--------------- ACTIVATE/DEACTIVATE PID ------------------------------
-        if currentKey == 'p.p':
+        if currentKey == 'pid':
             self.pida = not self.pida
             self.currentState[5] = True
 
@@ -350,16 +352,17 @@ class RcBrainThread:
             self.currentState[0] = True
         elif currentKey == 'reverse':
             self.currentState[1] = True
-        elif currentKey == 'left':
-            self.currentState[2] = True
         elif currentKey == 'right':
+            self.currentState[2] = True
+        elif currentKey == 'left':
             self.currentState[3] = True
         elif currentKey == 'stop':
             self.currentState[4] = True
         elif currentKey == 'straight':
             self.currentState[7] = True
+        #elif currentKey == 'none':
+            
 
         
-
 
 

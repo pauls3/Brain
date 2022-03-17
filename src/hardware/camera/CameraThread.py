@@ -93,7 +93,7 @@ class CameraThread(ThreadWithStop):
         # camera settings
         #self.camera.resolution      =   (1640,1232)
         self.camera.resolution      =   (640,480)
-        self.camera.framerate       =   10
+        self.camera.framerate       =   5
 
         self.camera.brightness      =   50
         self.camera.shutter_speed   =   6000#1200
@@ -137,6 +137,5 @@ class CameraThread(ThreadWithStop):
             
             self._stream.seek(0)
             self._stream.truncate()
-
 
 

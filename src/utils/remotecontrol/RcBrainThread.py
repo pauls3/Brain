@@ -89,7 +89,7 @@ class RcBrainThread:
         self.configParam = copy.deepcopy(self.default_configParam)  
 
         #----------------- DIRECTION SIGNALS STATES -----------
-        self.currentState =[False,False,False,False,False, False, False, False]   #UP, DOWN , LEFT, RIGHT, BRAKE, PIDActive, PIDSvalues, SteerRelease
+        self.currentState =[False,False,False,False,False, False, False, False, False]   #UP, DOWN , LEFT, RIGHT, BRAKE, PIDActive, PIDSvalues, SteerRelease, PARK
 
     # ===================================== DISPLAY INFO =================================
     def displayInfo(self):
@@ -159,6 +159,8 @@ class RcBrainThread:
             data['action']        =  '2'
             data['steerAngle']    =  0.0
             self.currentState[7] = False
+        elif self.currentState[8]:
+            data['speed']         =  float(self.speed/100.0)
         else:
             return None
             
@@ -202,6 +204,11 @@ class RcBrainThread:
             self.currentState[1] = False
             self.speed = 0
             return
+        if self.currentState[8]:
+            #self.speed = 9.0
+            self.startSpeed = 9.0
+            self.currentState[8] = False
+            return
 
         #forward
         if self.currentState[0]:
@@ -243,7 +250,7 @@ class RcBrainThread:
             #        self.steerAngle = - self.configParam.maxSteerAngle
             #    else:
             #        self.steerAngle -= self.configParam.steerAngleStep
-            self.steerAngle = - self.configParam.maxSteerAngle
+            self.steerAngle = -self.configParam.maxSteerAngle
         #right steer    
         elif self.currentState[3] == True:
             #if self.steerAngle == 0:
@@ -253,7 +260,7 @@ class RcBrainThread:
             #        self.steerAngle = self.configParam.maxSteerAngle
             #    else:
             #        self.steerAngle += self.configParam.steerAngleStep
-            self.steerAngle = self.configParam.steerAngleStep
+            self.steerAngle = self.configParam.maxSteerAngle
         #elif not self.currentState[2] and not self.currentState[3]:
         #        self.steerAngle = 0
 
@@ -352,14 +359,16 @@ class RcBrainThread:
             self.currentState[0] = True
         elif currentKey == 'reverse':
             self.currentState[1] = True
-        elif currentKey == 'right':
-            self.currentState[2] = True
         elif currentKey == 'left':
+            self.currentState[2] = True
+        elif currentKey == 'right':
             self.currentState[3] = True
         elif currentKey == 'stop':
             self.currentState[4] = True
         elif currentKey == 'straight':
             self.currentState[7] = True
+        elif currentKey == 'park':
+            self.currentState[8] = not self.currentState[8]
         #elif currentKey == 'none':
             
 

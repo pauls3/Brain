@@ -57,6 +57,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
         self.rcBrain   =  RcBrainThread()
         self.lisBrR, self.lisBrS = Pipe(duplex=False)
         self.COMMAND = "null"
+        self.PARKING = False
 
     # ===================================== RUN ==========================================
     def run(self):
@@ -101,36 +102,37 @@ class RemoteControlReceiverProcess(WorkerProcess):
             self._start_pid(outPs, )
             time.sleep(1)
 
-            
            
             while True:
                 
-                for ii in self.inPs:
-                    for cmd in ii.recv():
-                        self._send_command(outPs, cmd)
+                # ignore commands if currently parking
+                if not self.PARKING:
+                    for ii in self.inPs:
+                        if 'parallel_park' in ii.recv():
+                            self.PARKING = True
+                            self._parallel_park(outPs, )
+                        else:
+                            for cmd in ii.recv():
+                                self._send_command(outPs, cmd)
                 
                 #time.sleep(0.5)
-
-           
-           
-            #for ii in commands:
-            #while True:
-                # take car commands (global)
-                #if self.COMMAND != "null":
-                #    print("null")
-            #    self._send_command(outPs, ii)
-            #    if ii == 'forward':
-            #        time.sleep(20)
-            #    elif ii == 'stop':
-            #        time.sleep(1)
-            #    jj = jj + 1
 
        
         except Exception as e:
             print(e)
     
-
+    
+    
+    # sends commands for the car to stop and straighten out
+    def _stop_straight(self, outPs):
+        cmds = ['stop', 'straight']
+        for ii in cmds:
+            self._send_command(outPs, ii,)
+            time.sleep(1)
+                  
+                  
     def _start_pid(self, outPs):
+       print('Starting PID')
        cmds = ['pid', 'stop','straight']
        for ii in cmds:
            command_ =  self.rcBrain.getMessage(ii)
@@ -141,8 +143,8 @@ class RemoteControlReceiverProcess(WorkerProcess):
               for outP in outPs:
                  outP.send(command)
         
-
        time.sleep(1)
+    
     
     
     def _send_command(self, outPs, command):
@@ -152,26 +154,33 @@ class RemoteControlReceiverProcess(WorkerProcess):
            encode = json.dumps(command_).encode()
            decode = encode.decode()
            command = json.loads(decode)
-           for ii in range(0,7):
+           for ii in range(0,5):
                for outP in outPs:
                    outP.send(command)
         #time.sleep(3)
     
-           
-    def _send_command_thread(self, inP):
-        """Transmite the command to the remotecontrol receiver. 
+
+    def _parallel_park(self, outPs):
+        print('**************************')
+        print('Parallel Parking')
+        print('**************************')
+        commands = ['right', 'reverse', 'stop', 'left', 'reverse', 'stop', 'right', 'forward', 'stop']
         
-        Parameters
-        ----------
-        inP : Pipe
-            Input pipe. 
-        """
-        while True:
-            key = inP.recv()
-
-            command = self.rcBrain.getMessage(key)
-            if command is not None and command != 'stop':
-                command = json.dumps(command).encode()
-
-                self.client_socket.sendto(command,(self.serverIp,self.port))
-
+        # first stop and straighten out
+        self._stop_straight(outPs,)
+        
+        flag = True
+        # start paralle parking
+        for ii in commands:
+            self._send_command(outPs, ii,)
+            if ii == 'reverse' and flag:
+                time.sleep(4)
+                flag = False
+            elif ii == 'reverse' and not flag:
+                time.sleep(3)
+            elif ii == 'forward':
+                time.sleep(1)
+            else:
+                time.sleep(1.5)
+        
+        self._stop_straight(outPs,)

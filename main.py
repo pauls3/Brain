@@ -44,6 +44,7 @@ from src.hardware.serialhandler.SerialHandlerProcess        import SerialHandler
 # utility imports
 from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
 from src.utils.remotecontrol.RemoteControlReceiverProcess   import RemoteControlReceiverProcess
+from src.utils.remotecontrol.tflite_run                     import ObjectDetector
 
 def main():
     # =============================== CONFIG =================================================
@@ -57,6 +58,9 @@ def main():
     allProcesses = list()
 
     inCmd, outCmd   = Pipe(duplex = False)
+    
+    inImg, outImg = Pipe(duplex = False)
+    inDetected, outDetected = Pipe(duplex = False)
     # =============================== HARDWARE ===============================================
     if enableStream:
         camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
@@ -69,9 +73,11 @@ def main():
             camProc = CameraProcess([],[camStS])
             allProcesses.append(camProc)
 
-        streamProc = CameraStreamerProcess([camStR], [outCmd])
+        streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
         allProcesses.append(streamProc)
-
+        
+        objDetectorProc = ObjectDetector([inImg], [outDetected])
+        allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================
     #LocSys client process

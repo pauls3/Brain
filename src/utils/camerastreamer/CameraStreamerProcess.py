@@ -31,19 +31,21 @@ import struct
 import time
 import numpy as np
 
-from threading import Thread
+from threading       import Thread
+from multiprocessing import Pipe
 
 import cv2
 import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
+#from src.utils.tflite import ObjectDetector
 
 class CameraStreamerProcess(WorkerProcess):
-    HEIGHT = 480
-    WIDTH = 640
+    HEIGHT = 320
+    WIDTH = 320
     
     # ===================================== INIT =========================================
-    def __init__(self, inPs, outPs):
+    def __init__(self, inPipes, outPipes):
         """Process used for sending images over the network to a targeted IP via UDP protocol 
         (no feedback required). The image is compressed before sending it. 
 
@@ -56,9 +58,17 @@ class CameraStreamerProcess(WorkerProcess):
         outPs : list(Pipe) 
             List of output pipes (not used at the moment)
         """
-        super(CameraStreamerProcess,self).__init__( inPs, outPs)
-        self.HEIGHT = 480
-        self.WIDTH = 640
+        super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
+        self.HEIGHT = 320
+        self.WIDTH = 320
+        self.PARKING = False
+        self.inPs = inPipes[0]
+        self.inDetectedPs = inPipes[1]
+        self.outPs = outPipes[0]
+        self.outImgPs = outPipes[1]
+        #self.inDetected, self.outImg = Pipe(duplex=False)
+        
+        #self.listener = ObjectDetector([self.inDetected], [self.outImg])
     # ===================================== RUN ==========================================
     def run(self):
         """Apply the initializing methods and start the threads.
@@ -73,7 +83,10 @@ class CameraStreamerProcess(WorkerProcess):
         
         if self._blocker.is_set():
             return
-        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs[0], self.outPs, ))
+        #self.listener.daemon = self.daemon
+        #self.threads.append(self.listener)
+        
+        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs, self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
         
@@ -85,21 +98,39 @@ class CameraStreamerProcess(WorkerProcess):
         ----------
         inP : Pipe
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
-        """
-        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 70]
-        
+        """        
         stencil = np.zeros((self.HEIGHT, self.WIDTH))
         stencil = stencil.astype('uint8')
         # specify coordinates of the polygon
         #polygon = np.array([[50,270], [220,160], [360,160], [480,270]])
-        polygon = np.array([[0, 480], [0,300], [50,170], [590,170], [640,300], [640, 480]])
+        #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
+        #polygon = np.array([[0, 320], [0,155], [320,155], [320, 320]])
+        polygon = np.array([[0, 320], [0,155], [320,155], [320, 320]])
         cv2.fillConvexPoly(stencil, polygon, 1)
         #ii = 0
         cmdOut = "none"
+        
+        
+        # Testing parallel parking
+        self.PARKING = False
+        
         while True:
             try:
                 # get image
                 stamps, image = inP.recv()
+                
+                
+                
+                #for ii in self.inDetected:
+                #    for detected in ii.recv():
+                #        print(detected)
+                
+                
+                # send to object detection
+                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                #for out_frames in outImg:
+                self.outImgPs.send([rgb_img])
+                
                 # convert to grayscale
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
@@ -114,22 +145,41 @@ class CameraStreamerProcess(WorkerProcess):
                 # get lines
                 lines = cv2.HoughLinesP(thresh, 1, np.pi/180, 50, maxLineGap=200)
                 
-                # convert gray to rgb (3 channels for gray)
-                rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
+                # convert to rgb
+                #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                 
                 # get lane lines
                 lane_lines = self._avg_slope_intersect(lines)
+                
+                
+                
+                
+                
+                
+                frame_objects, detected_objects = self.inDetectedPs.recv()
+                # check if list is not empty
+                if detected_objects:
+                    print(detected_objects)
+                
+                
                 # draw lines to grayscale image
-                lane_lines_img, commands = self._display_lines(rgb_img, lane_lines)
+                lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
+   
                 
                 cv2.imshow('Image', lane_lines_img)
                 cv2.waitKey(1)
                 
                 
-                for outP in outPs:
-                    #print(outP)
-                    #outP.send(ii)
-                    outP.send(commands)
+                
+                
+                
+                #for outP in outPs:
+                    # check if parking mode
+                if (self.PARKING):
+                    outPs.send(['parallel_park'])
+                # else only focus on lane centering
+                else:
+                    outPs.send(lane_centering_cmds)
 
                 #ii = ii + 1
                 #time.sleep(1)
@@ -205,9 +255,9 @@ class CameraStreamerProcess(WorkerProcess):
         line_img = line_img.astype('uint8')
         
         commands = []
-        ###
+        ##################
         # draw center line
-        ###
+        ##################
         # Detected 2 lanes
         if len(lines) == 2:
             left_x1, _, left_x2, _ = lines[0][0]
@@ -215,7 +265,7 @@ class CameraStreamerProcess(WorkerProcess):
             #print(lines[0][0])
             x_offset = (left_x2 + right_x2) / 2
             y_offset = int(self.HEIGHT / 2)
-            if abs(left_x1 - right_x1) < 200:
+            if abs(left_x1 - right_x1) < 50:
                 mid = int(self.WIDTH / 2)
                 x1, _, x2, _ = lines[0][0]
                 x_offset = int(x2 - x1)
@@ -257,10 +307,10 @@ class CameraStreamerProcess(WorkerProcess):
     
     
     def _steering_cmd(self, x1):
-        if x1 <= 200:
-            return ['forward', 'right']
-        elif x1 >= 450:
-            return ['forward', 'left']
+        if x1 <= 110:
+            return ['forward', 'left', 'left']
+        elif x1 >= 210:
+            return ['forward', 'right', 'right']
         else:
             return ['forward', 'straight']
     

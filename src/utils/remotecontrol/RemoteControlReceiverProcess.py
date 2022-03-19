@@ -102,8 +102,9 @@ class RemoteControlReceiverProcess(WorkerProcess):
             self._start_pid(outPs, )
             time.sleep(1)
 
+            flag = True
            
-            while True:
+            while flag:
                 
                 # ignore commands if currently parking
                 if not self.PARKING:
@@ -164,7 +165,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
         print('**************************')
         print('Parallel Parking')
         print('**************************')
-        commands = ['right', 'reverse', 'stop', 'left', 'reverse', 'stop', 'right', 'forward', 'stop']
+        commands = ['right', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop']
         
         # first stop and straighten out
         self._stop_straight(outPs,)

@@ -1,0 +1,6 @@
+car
+pedestrian
+crosswalk sign
+parking sign
+priority sign
+stop sign

@@ -76,13 +76,13 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.startSpeed         =   14.0
-        self.startSteerAngle    =   1.0
+        self.startSpeed         =   12.0
+        self.startSteerAngle    =   10.0
 
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
-        self.default_configParam = RcBrainConfigParams(20.5, 14.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5, 12.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -161,6 +161,7 @@ class RcBrainThread:
             self.currentState[7] = False
         elif self.currentState[8]:
             data['speed']         =  float(self.speed/100.0)
+            self.currentState[8]  = False
         else:
             return None
             
@@ -243,24 +244,24 @@ class RcBrainThread:
                 self.steerAngle = 0
         # left steer
         elif self.currentState[2] == True:
-            #if self.steerAngle == 0:
-            #    self.steerAngle = -self.startSteerAngle
-            #elif self.steerAngle > -self.configParam.maxSteerAngle:
-            #    if self.configParam.maxSteerAngle + self.steerAngle < self.configParam.steerAngleStep:
-            #        self.steerAngle = - self.configParam.maxSteerAngle
-            #    else:
-            #        self.steerAngle -= self.configParam.steerAngleStep
-            self.steerAngle = -self.configParam.maxSteerAngle
+            if self.steerAngle == 0:
+                self.steerAngle = -self.startSteerAngle
+            elif self.steerAngle > -self.configParam.maxSteerAngle:
+                if self.configParam.maxSteerAngle + self.steerAngle < self.configParam.steerAngleStep:
+                    self.steerAngle = - self.configParam.maxSteerAngle
+                else:
+                    self.steerAngle -= self.configParam.steerAngleStep
+            #self.steerAngle = -self.configParam.maxSteerAngle
         #right steer    
         elif self.currentState[3] == True:
-            #if self.steerAngle == 0:
-            #    self.steerAngle = self.startSteerAngle
-            #elif self.steerAngle < self.configParam.maxSteerAngle:
-            #    if self.configParam.maxSteerAngle - self.steerAngle < self.configParam.steerAngleStep:
-            #        self.steerAngle = self.configParam.maxSteerAngle
-            #    else:
-            #        self.steerAngle += self.configParam.steerAngleStep
-            self.steerAngle = self.configParam.maxSteerAngle
+            if self.steerAngle == 0:
+                self.steerAngle = self.startSteerAngle
+            elif self.steerAngle < self.configParam.maxSteerAngle:
+                if self.configParam.maxSteerAngle - self.steerAngle < self.configParam.steerAngleStep:
+                    self.steerAngle = self.configParam.maxSteerAngle
+                else:
+                    self.steerAngle += self.configParam.steerAngleStep
+            #self.steerAngle = self.configParam.maxSteerAngle
         #elif not self.currentState[2] and not self.currentState[3]:
         #        self.steerAngle = 0
 
@@ -319,7 +320,8 @@ class RcBrainThread:
         """      
         #--------------- ACTIVATE/DEACTIVATE PID ------------------------------
         if currentKey == 'pid':
-            self.pida = not self.pida
+            #self.pida = not self.pida
+            self.pida = True
             self.currentState[5] = True
 
         #--------------- KP PID ------------------------------
@@ -368,7 +370,7 @@ class RcBrainThread:
         elif currentKey == 'straight':
             self.currentState[7] = True
         elif currentKey == 'park':
-            self.currentState[8] = not self.currentState[8]
+            self.currentState[8] = True
         #elif currentKey == 'none':
             
 

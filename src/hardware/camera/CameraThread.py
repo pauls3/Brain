@@ -91,9 +91,9 @@ class CameraThread(ThreadWithStop):
         self.camera = PiCamera()
 
         # camera settings
-        #self.camera.resolution      =   (1640,1232)
+        #self.camera.resolution      =   (1664,1232)
         self.camera.resolution      =   (320,320)
-        self.camera.framerate       =   2
+        self.camera.framerate       =   10
 
         self.camera.brightness      =   50
         self.camera.shutter_speed   =   6000#1200
@@ -101,7 +101,9 @@ class CameraThread(ThreadWithStop):
         self.camera.iso             =   0 # auto
         
 
-        self.imgSize                =   (320,320)    # the actual image size
+        #self.imgSize                =   (1664,1232)    # the actual image size
+        self.imgSize                =    (320,320)      # the actual image size
+
 
     # ===================================== GET STAMP ====================================
     def _get_timestamp(self):

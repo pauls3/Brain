@@ -56,8 +56,10 @@ class RemoteControlReceiverProcess(WorkerProcess):
         super(RemoteControlReceiverProcess,self).__init__( inPs, outPs)
         self.rcBrain   =  RcBrainThread()
         self.lisBrR, self.lisBrS = Pipe(duplex=False)
-        self.COMMAND = "null"
+        self.CURRENT_STATE = "null"
         self.PARKING = False
+        self.STOP_SIGN = False
+        self.PEDESTRIAN = True
 
     # ===================================== RUN ==========================================
     def run(self):
@@ -104,17 +106,34 @@ class RemoteControlReceiverProcess(WorkerProcess):
 
             flag = True
            
-            while flag:
+            while flag:              
                 
                 # ignore commands if currently parking
-                if not self.PARKING:
+                if self.CURRENT_STATE == 'null':
                     for ii in self.inPs:
-                        if 'parallel_park' in ii.recv():
-                            self.PARKING = True
+                        if 'pedestrian_crossing' in ii.recv():
+                            self.CURRENT_STATE = 'pedestrian_crossing'
+                            self._crosswalk_wait(outPs,)
+                        elif 'right_of_way' in ii.recv():
+                            self.CURRENT_STATE = 'right_of_way'
+                            self._right_of_way(outPs,)
+                        elif 'parallel_park' in ii.recv():
+                            #self.PARKING = True
+                            self.CURRENT_STATE = 'parking'
                             self._parallel_park(outPs, )
+                        elif 'stop_sign' in ii.recv():
+                            #self.STOP_SIGN = True
+                            self.CURRENT_STATE = 'stop_sign'
+                            self._stop_sign(outPs, self.inPs, )
+                        elif 'stop' in ii.recv():
+                            self._stop_straight(outPs, )
+                        elif 'forward_test' in ii.recv():
+                            self._forward_test(outPs, )
                         else:
                             for cmd in ii.recv():
                                 self._send_command(outPs, cmd)
+                else:
+                    continue
                 
                 #time.sleep(0.5)
 
@@ -122,6 +141,14 @@ class RemoteControlReceiverProcess(WorkerProcess):
         except Exception as e:
             print(e)
     
+    
+    
+    # sends commands for the car to stop and straighten out
+    def _forward_test(self, outPs):
+        cmds = ['forward', 'stop']
+        for ii in cmds:
+            self._send_command(outPs, ii,)
+            time.sleep(5)
     
     
     # sends commands for the car to stop and straighten out
@@ -133,7 +160,9 @@ class RemoteControlReceiverProcess(WorkerProcess):
                   
                   
     def _start_pid(self, outPs):
+       print('**************************')
        print('Starting PID')
+       print('**************************')
        cmds = ['pid', 'stop','straight']
        for ii in cmds:
            command_ =  self.rcBrain.getMessage(ii)
@@ -149,7 +178,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
     
     
     def _send_command(self, outPs, command):
-        print(command)
+        #print(command)
         command_ =  self.rcBrain.getMessage(command)
         if command_ is not None:
            encode = json.dumps(command_).encode()
@@ -158,30 +187,142 @@ class RemoteControlReceiverProcess(WorkerProcess):
            for ii in range(0,5):
                for outP in outPs:
                    outP.send(command)
-        #time.sleep(3)
+           
+           #time.sleep(1)
+          
+          
+          
+    def _crosswalk_wait(self, outPs):
+        #print('**************************')
+        #print('CROSSWALK PROCEDURE')
+        #print('**************************')        
+        commands = ['stop']
+        
+        #time.sleep(2)
+        
+        for ii in commands:
+            self._send_command(outPs, ii,)
+
+        
+        self.CURRENT_STATE = 'null'
+                   
+    def _right_of_way(self, outPs):
+        print('**************************')
+        print('PRIORITY SIGN PROCEDURE')
+        print('**************************')
+        #commands = ['stop', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop']
+        
+        commands = ['straight', 'forward', 'right', 'right', 'forward', 'straight', 'forward', 'stop']
+        
+        
+        # first stop and straighten out
+        self._stop_straight(outPs,)
+        time.sleep(2)
+        
+        flag = 0
+        # start stop sign manuever
+        for ii in commands:
+            self._send_command(outPs, ii,)
+            if ii == 'forward' and flag == 0:
+                time.sleep(3)
+                flag = flag + 1
+            elif ii == 'forward' and flag == 1:
+                time.sleep(7)
+                flag = flag + 1
+            elif ii == 'forward' and flag == 2:
+                time.sleep(6)
+                flag = flag + 1
+            else:
+                time.sleep(1)
+                
+        
+        self.CURRENT_STATE = 'null'
     
+
+
+    def _stop_sign(self, outPs, inPs):
+        print('**************************')
+        print('STOP SIGN PROCEDURE')
+        print('**************************')
+        #commands = ['stop', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop']
+        
+        commands = ['straight', 'forward', 'left', 'left', 'forward', 'straight', 'forward']
+        
+        
+        # first stop and straighten out
+        self._stop_straight(outPs,)
+        #seconds = 0
+        #for ii in inPs:
+        #    seconds = int(ii.recv()[1])
+        
+        
+        #self._send_command(outPs, 'forward',)
+        #time.sleep(seconds)
+    
+        
+        flag = 0
+        # start stop sign manuever
+        for ii in commands:
+            self._send_command(outPs, ii,)
+            if ii == 'forward' and flag == 0:
+                time.sleep(4)
+                flag = flag + 1
+            elif ii == 'forward' and flag == 1:
+                time.sleep(10)
+                flag = flag + 1
+            elif ii == 'forward' and flag == 2:
+                time.sleep(5)
+                flag = flag + 1
+            else:
+                time.sleep(1)
+                
+        
+        self.CURRENT_STATE = 'null'
+
 
     def _parallel_park(self, outPs):
         print('**************************')
         print('Parallel Parking')
         print('**************************')
-        commands = ['right', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop']
+        in_commands  = ['right', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop', 'straight']
+        #out_commands = ['left', 'left', 'forward', 'stop', 'straight', 'right', 'right', 'forward', 'straight', 'stop']
+        out_commands = ['right', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'forward', 'stop', 'straight', 'left', 'left', 'forward', 'straight', 'right', 'right', 'forward', 'straight', 'stop']
+        
+        
         
         # first stop and straighten out
         self._stop_straight(outPs,)
         
         flag = True
         # start paralle parking
-        for ii in commands:
+        for ii in in_commands:
             self._send_command(outPs, ii,)
             if ii == 'reverse' and flag:
-                time.sleep(4)
+                time.sleep(6)
                 flag = False
             elif ii == 'reverse' and not flag:
                 time.sleep(3)
             elif ii == 'forward':
-                time.sleep(1)
+                time.sleep(2)
             else:
                 time.sleep(1.5)
         
+        time.sleep(5)
+        
+        flag = True
+        for ii in out_commands:
+            self._send_command(outPs, ii,)
+            if ii == 'forward' and flag:
+                time.sleep(2)
+                flag = False
+            elif ii == 'reverse':
+                time.sleep(2)
+            elif ii == 'forward' and not flag:
+                time.sleep(2)
+            else:
+                time.sleep(2)
+       
+       
         self._stop_straight(outPs,)
+        time.sleep(3)
+        self.CURRENT_STATE = 'null'

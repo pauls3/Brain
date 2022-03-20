@@ -165,7 +165,7 @@ class RcBrainThread:
         else:
             return None
             
-        print(data)
+        #print(data)
         return data
     # ========================= CALLBACK =================================================
     def getMessage(self,data):
@@ -189,7 +189,7 @@ class RcBrainThread:
         self._updateParameters(data)
         #self.displayInfo()
         
-        print(self.currentState)
+        #print(self.currentState)
         
         return self._stateDict()        
 

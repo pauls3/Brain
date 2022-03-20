@@ -70,7 +70,7 @@ class ObjectDetector(WorkerProcess):
         MODEL_NAME = "/home/pi/repos/Brain/src/utils/tflite" #args.modeldir
         GRAPH_NAME = 'detect.tflite'
         LABELMAP_NAME = 'labelmap.txt'
-        min_conf_threshold = float(0.4)
+        min_conf_threshold = float(0.6)
         resW = 300
         resH = 300
         imW = 300
@@ -128,8 +128,9 @@ class ObjectDetector(WorkerProcess):
 
         floating_model = (input_details[0]['dtype'] == np.float32)
 
-        input_mean = 127.5
-        input_std = 127.5
+        input_mean = 128
+        input_std = 128
+        print(floating_model)
 
         # Check output layer name to determine if this model was created with TF2 or TF1,
         # because outputs are ordered differently for TF2 and TF1 models
@@ -156,6 +157,7 @@ class ObjectDetector(WorkerProcess):
 
             # Grab frame from video stream
             #frame1 = videostream.read()
+            YMAX = 0
             for sent_frames in inP:
                 frame_in = sent_frames.recv()
                 if frame_in is not None:
@@ -193,31 +195,24 @@ class ObjectDetector(WorkerProcess):
                             ymax = int(min(imH,(boxes[i][2] * imH)))
                             xmax = int(min(imW,(boxes[i][3] * imW)))
                             
+                            YMAX = boxes[i][2] * imH
+                            #YMAX = abs((ymax - ymin) * (xmax - xmin))
+                            
+                            
                             cv2.rectangle(frame_rgb, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
 
                             # Draw label
                             object_name = labels[int(classes[i])] # Look up object name from "labels" array using class index
                             label = '%s: %d%%' % (object_name, int(scores[i]*100)) # Example: 'person: 72%'
-                            labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 2) # Get font size
+                            labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1) # Get font size
                             label_ymin = max(ymin, labelSize[1] + 10) # Make sure not to draw label too close to top of window
                             cv2.rectangle(frame_rgb, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
-                            cv2.putText(frame_rgb, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
+                            cv2.putText(frame_rgb, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1) # Draw label text
                             
                             detected_objects.append(label)
 
 
                     for outPipe in outP:
-                       outPipe.send([frame_rgb, detected_objects])
-
-                # Draw framerate in corner of frame
-                #cv2.putText(frame,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-                #cv2.putText(frame1,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-                # All the results have been drawn on the frame, so it's time to display it.
-                #cv2.imshow('Object detector', frame)
-                #cv2.imshow('Object detector', frame1)
-                # Calculate framerate
-                #t2 = cv2.getTickCount()
-                #time1 = (t2-t1)/freq
-                #frame_rate_calc= 1/time1
+                       outPipe.send([frame_rgb, detected_objects, YMAX])
 
             

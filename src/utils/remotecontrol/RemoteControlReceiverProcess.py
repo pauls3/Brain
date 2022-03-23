@@ -57,8 +57,9 @@ class RemoteControlReceiverProcess(WorkerProcess):
         self.rcBrain   =  RcBrainThread()
         self.lisBrR, self.lisBrS = Pipe(duplex=False)
         self.CURRENT_STATE = "null"
-        self.PARKING = False
-        self.STOP_SIGN = False
+        self.PARKING = True
+        self.STOP_SIGN = True
+        self.PRIORITY = True
         self.PEDESTRIAN = True
 
     # ===================================== RUN ==========================================
@@ -113,18 +114,21 @@ class RemoteControlReceiverProcess(WorkerProcess):
                     for ii in self.inPs:
                         if 'pedestrian_crossing' in ii.recv():
                             self.CURRENT_STATE = 'pedestrian_crossing'
-                            self._crosswalk_wait(outPs,)
-                        elif 'right_of_way' in ii.recv():
+                            self._crosswalk_wait(outPs,)                            
+                        elif 'right_of_way' in ii.recv() and self.PRIORITY:
                             self.CURRENT_STATE = 'right_of_way'
                             self._right_of_way(outPs,)
-                        elif 'parallel_park' in ii.recv():
+                            self.PRIORITY = False
+                        elif 'parallel_park' in ii.recv() and self.PARKING:
                             #self.PARKING = True
                             self.CURRENT_STATE = 'parking'
                             self._parallel_park(outPs, )
-                        elif 'stop_sign' in ii.recv():
+                            self.PARKING = False
+                        elif 'stop_sign' in ii.recv() and self.STOP_SIGN:
                             #self.STOP_SIGN = True
                             self.CURRENT_STATE = 'stop_sign'
                             self._stop_sign(outPs, self.inPs, )
+                            self.STOP_SIGN = False
                         elif 'stop' in ii.recv():
                             self._stop_straight(outPs, )
                         elif 'forward_test' in ii.recv():
@@ -184,7 +188,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
            encode = json.dumps(command_).encode()
            decode = encode.decode()
            command = json.loads(decode)
-           for ii in range(0,5):
+           for ii in range(0,7):
                for outP in outPs:
                    outP.send(command)
            
@@ -212,27 +216,32 @@ class RemoteControlReceiverProcess(WorkerProcess):
         print('**************************')
         #commands = ['stop', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop']
         
-        commands = ['straight', 'forward', 'right', 'right', 'forward', 'straight', 'forward', 'stop']
+        commands = ['straight', 'forward', 'right', 'forward', 'straight', 'forward']
         
         
         # first stop and straighten out
-        self._stop_straight(outPs,)
-        time.sleep(2)
+        #self._stop_straight(outPs,)
+        #time.sleep(2)
         
         flag = 0
         # start stop sign manuever
         for ii in commands:
-            self._send_command(outPs, ii,)
+            
+            print(ii)
             if ii == 'forward' and flag == 0:
+                self._send_command(outPs, ii,)
                 time.sleep(3)
                 flag = flag + 1
             elif ii == 'forward' and flag == 1:
+                self._send_command(outPs, ii,)
                 time.sleep(7)
                 flag = flag + 1
             elif ii == 'forward' and flag == 2:
-                time.sleep(6)
+                #self._send_command(outPs, ii,)
+                time.sleep(2)
                 flag = flag + 1
             else:
+                self._send_command(outPs, ii,)
                 time.sleep(1)
                 
         
@@ -246,23 +255,24 @@ class RemoteControlReceiverProcess(WorkerProcess):
         print('**************************')
         #commands = ['stop', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop']
         
-        commands = ['straight', 'forward', 'left', 'left', 'forward', 'straight', 'forward']
+        commands = ['straight', 'forward', 'left', 'forward', 'straight', 'forward']
         
         
         # first stop and straighten out
         self._stop_straight(outPs,)
-        #seconds = 0
+        seconds = 3
         #for ii in inPs:
         #    seconds = int(ii.recv()[1])
         
         
         #self._send_command(outPs, 'forward',)
-        #time.sleep(seconds)
+        time.sleep(seconds)
     
         
         flag = 0
         # start stop sign manuever
         for ii in commands:
+            print(ii)
             self._send_command(outPs, ii,)
             if ii == 'forward' and flag == 0:
                 time.sleep(4)
@@ -284,9 +294,9 @@ class RemoteControlReceiverProcess(WorkerProcess):
         print('**************************')
         print('Parallel Parking')
         print('**************************')
-        in_commands  = ['right', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'reverse', 'stop', 'straight', 'right', 'right', 'forward', 'stop', 'straight']
+        in_commands  = ['right', 'reverse', 'stop', 'left', 'reverse', 'stop', 'right', 'forward', 'stop', 'straight']
         #out_commands = ['left', 'left', 'forward', 'stop', 'straight', 'right', 'right', 'forward', 'straight', 'stop']
-        out_commands = ['right', 'right', 'reverse', 'stop', 'straight', 'left', 'left', 'forward', 'stop', 'straight', 'left', 'left', 'forward', 'straight', 'right', 'right', 'forward', 'straight', 'stop']
+        out_commands = ['right', 'reverse', 'stop', 'left', 'forward', 'straight', 'right', 'forward', 'straight']
         
         
         
@@ -297,6 +307,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
         # start paralle parking
         for ii in in_commands:
             self._send_command(outPs, ii,)
+            #print(ii)
             if ii == 'reverse' and flag:
                 time.sleep(6)
                 flag = False
@@ -305,24 +316,27 @@ class RemoteControlReceiverProcess(WorkerProcess):
             elif ii == 'forward':
                 time.sleep(2)
             else:
-                time.sleep(1.5)
+                time.sleep(2)
         
         time.sleep(5)
         
         flag = True
         for ii in out_commands:
             self._send_command(outPs, ii,)
+            #print(ii)
             if ii == 'forward' and flag:
                 time.sleep(2)
                 flag = False
             elif ii == 'reverse':
                 time.sleep(2)
             elif ii == 'forward' and not flag:
-                time.sleep(2)
+                time.sleep(1)
+            elif ii == 'right'  and not flag:
+                time.sleep(4)
             else:
                 time.sleep(2)
        
        
-        self._stop_straight(outPs,)
-        time.sleep(3)
+        #self._stop_straight(outPs,)
+        #time.sleep(2)
         self.CURRENT_STATE = 'null'

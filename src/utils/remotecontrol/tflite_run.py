@@ -70,7 +70,7 @@ class ObjectDetector(WorkerProcess):
         MODEL_NAME = "/home/pi/repos/Brain/src/utils/tflite" #args.modeldir
         GRAPH_NAME = 'detect.tflite'
         LABELMAP_NAME = 'labelmap.txt'
-        min_conf_threshold = float(0.6)
+        min_conf_threshold = float(0.30)
         resW = 300
         resH = 300
         imW = 300
@@ -183,11 +183,28 @@ class ObjectDetector(WorkerProcess):
                     scores = interpreter.get_tensor(output_details[scores_idx]['index'])[0] # Confidence of detected objects
                     
                     detected_objects = []
-                    
+                                        
                     # Loop over all detections and draw detection box if confidence is above minimum threshold
                     for i in range(len(scores)):
-                        if ((scores[i] > min_conf_threshold) and (scores[i] <= 1.0)):
-
+                        flag = False
+                        
+                        ymin = int(max(1,(boxes[i][0] * imH)))
+                        ymax = int(min(imH,(boxes[i][2] * imH)))
+                        YMAX = abs((ymax - ymin))
+                        
+                        if ('ped' in labels[int(classes[i])] and YMAX > 40 and scores[i] >= 0.75):
+                            flag = True
+                        elif 'priority' in labels[int(classes[i])] and scores[i] >= 0.25 and YMAX > 30:
+                            flag = True
+                        elif 'parking' in labels[int(classes[i])] and scores[i] >= 0.20 and YMAX > 30:
+                            flag = True
+                        elif 'cross' in labels[int(classes[i])] and YMAX > 30 and scores[i] >= 0.55:
+                            flag = True
+                        elif 'stop' in labels[int(classes[i])] and scores[i] >= 0.25:
+                            flag = True
+                    
+                        #if ((scores[i] > min_conf_threshold) and (scores[i] <= 1.0)):
+                        if flag:
                             # Get bounding box coordinates and draw box
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
                             ymin = int(max(1,(boxes[i][0] * imH)))
@@ -195,8 +212,8 @@ class ObjectDetector(WorkerProcess):
                             ymax = int(min(imH,(boxes[i][2] * imH)))
                             xmax = int(min(imW,(boxes[i][3] * imW)))
                             
-                            YMAX = boxes[i][2] * imH
-                            #YMAX = abs((ymax - ymin) * (xmax - xmin))
+                            #YMAX = boxes[i][2] * imH
+                            YMAX = abs((ymax - ymin))
                             
                             
                             cv2.rectangle(frame_rgb, (xmin,ymin), (xmax,ymax), (10, 255, 0), 2)
@@ -209,8 +226,19 @@ class ObjectDetector(WorkerProcess):
                             cv2.rectangle(frame_rgb, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
                             cv2.putText(frame_rgb, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1) # Draw label text
                             
+                            '''
+                            if ('ped' in label and YMAX > 40 and scores[i] >= 0.75):
+                                detected_objects.append(label)
+                            elif 'priority' in label and YMAX > 35:
+                                detected_objects.append(label)
+                            elif 'parking' in label and YMAX > 35:
+                                detected_objects.append(label)
+                            elif 'cross' in label and YMAX > 30 and scores[i] >= 0.55:
+                                detected_objects.append(label)
+                            elif 'stop' in label and scores[i] >= 0.45:
+                                detected_objects.append(label)
+                            '''
                             detected_objects.append(label)
-
 
                     for outPipe in outP:
                        outPipe.send([frame_rgb, detected_objects, YMAX])

@@ -82,7 +82,7 @@ class RcBrainThread:
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
-        self.default_configParam = RcBrainConfigParams(20.5, 12.0, 10.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5, 12.0, 20.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -244,6 +244,7 @@ class RcBrainThread:
                 self.steerAngle = 0
         # left steer
         elif self.currentState[2] == True:
+            '''
             if self.steerAngle == 0:
                 self.steerAngle = -self.startSteerAngle
             elif self.steerAngle > -self.configParam.maxSteerAngle:
@@ -251,9 +252,12 @@ class RcBrainThread:
                     self.steerAngle = - self.configParam.maxSteerAngle
                 else:
                     self.steerAngle -= self.configParam.steerAngleStep
-            #self.steerAngle = -self.configParam.maxSteerAngle
+            '''
+            #if self.steerAngle == 0:
+            self.steerAngle = -self.configParam.maxSteerAngle
         #right steer    
         elif self.currentState[3] == True:
+            '''
             if self.steerAngle == 0:
                 self.steerAngle = self.startSteerAngle
             elif self.steerAngle < self.configParam.maxSteerAngle:
@@ -261,7 +265,9 @@ class RcBrainThread:
                     self.steerAngle = self.configParam.maxSteerAngle
                 else:
                     self.steerAngle += self.configParam.steerAngleStep
-            #self.steerAngle = self.configParam.maxSteerAngle
+            '''
+            #if self.steerAngle == 0:
+            self.steerAngle = self.configParam.maxSteerAngle
         #elif not self.currentState[2] and not self.currentState[3]:
         #        self.steerAngle = 0
 

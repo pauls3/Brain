@@ -66,8 +66,8 @@ class CameraStreamerProcess(WorkerProcess):
         self.outPs = outPipes[0]
         self.outImgPs = outPipes[1]
         
-        self.PARKING = False
-        self.STOP = False
+        self.PARKING = True
+        self.STOP = True
         self.CURRENT_STATE = 'null'
         self.FLAG = True
         self.delayState = 'null'
@@ -113,17 +113,21 @@ class CameraStreamerProcess(WorkerProcess):
         #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
         #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
         
-        polygon = np.array([[0, 320], [0,130], [320,130], [320, 320]])
+        #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
+        polygon = np.array([[0, 320], [0,220], [320,220], [320, 320]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
         cv2.fillConvexPoly(stencil_reg, polygon, 1)
-        poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
-        poly2 = np.array([[260, 300], [260,140], [320,140], [320, 320]])
+        #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
+        #poly2 = np.array([[260, 300], [260,140], [320,140], [320, 320]])
+        
+        poly1 = np.array([[0, 320], [0,275], [60, 275], [70, 320]])
+        poly2 = np.array([[260, 320], [260,275], [320,275], [320, 320]])
         cv2.fillPoly(stencilX, [poly1, poly2], 1)
         #ii = 0
         cmdOut = "none"
         
-        t = Timer(0.5, self._set_delay_state)
-        
+        t = Timer(2, self._set_delay_state)
+        #parking_t = Timer(30, self._set_delay_state)
         
         # Testing parallel parking
         self.PARKING = False
@@ -131,12 +135,23 @@ class CameraStreamerProcess(WorkerProcess):
         frameCounter = 0
         YMAX = 0
         
+        
+        keep_driving = True
+        
         stop_flag = False
         park_flag = False
-        keep_driving = True
         priority_flag = False
         pedestrian_flag = False
         crosswalk_flag = False
+        
+        stop_fnd_flag = True
+        park_fnd_flag = True
+        priority_fnd_flag = True
+        pedestrian_fnd_flag = True
+        crosswalk_fnd_flag = True
+        
+        obj_detect_flag = True
+        
         flag = True
         
         stencil = stencil_reg
@@ -148,18 +163,47 @@ class CameraStreamerProcess(WorkerProcess):
         start = 0
         end = 0
         
+        park_start = 0
+        park_end = 0
+        ped_start = 0
+        ped_end = 0
+        
+        priority_start = 0
+        priority_end = 0
+        
+        stop_start = 0
+        stop_end = 0
+        
+        idx = 0
+        
+        tmp_idx = -1
+        tmp_state = ""
+        
         while self.FLAG:
             try:
                 
-                #if self.CURRENT_STATE == 'found_stop_sign':
-                if self.CURRENT_STATE == 'ped_on_crosswalk':
-                    end = time.time()
-                    if end - start >= 5:
+                #if tmp_idx != idx:
+                #    print(self.CURRENT_STATE, idx)
+                #    tmp_idx = idx
+                
+                if tmp_state != self.CURRENT_STATE:
+                    print(self.CURRENT_STATE, obj_detect_flag)
+                    tmp_state = self.CURRENT_STATE
+                    
+                
+                
+                #if self.CURRENT_STATE == 'found_stop_sign':# or self.CURRENT_STATE == 'right_of_way':
+                #if self.CURRENT_STATE == 'ped_on_crosswalk':
+                    #end = time.time()
+                    #if end - start >= 3:
                     #self.delayState = 'right_of_way'
-                        self.CURRENT_STATE = 'drive_forward'
+                    #    self.CURRENT_STATE = 'drive_forward'
                     
                     #t.start()
                     #t.join()
+                #if self.CURRENT_STATE == 'start_parking':
+                #    parking_t.start()
+                #    parking_t.join()
                     
                 
                 # get image
@@ -175,7 +219,7 @@ class CameraStreamerProcess(WorkerProcess):
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 
                 
-                if frameCounter == 0:
+                if frameCounter == 0 and obj_detect_flag:
                 #for out_frames in outImg:
                     self.outImgPs.send([rgb_img])
                 
@@ -189,9 +233,9 @@ class CameraStreamerProcess(WorkerProcess):
                 # blur
                 blur_img = cv2.blur(img_crop_gray, (10,10))
                 # get threshold
-                ret, thresh = cv2.threshold(blur_img, 125, 170, cv2.THRESH_BINARY) 
+                ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY) 
                 # get lines
-                lines = cv2.HoughLinesP(thresh, 1, np.pi/180, 50, maxLineGap=200)
+                lines = cv2.HoughLinesP(thresh, 1, np.pi/180, 25, maxLineGap=200)
                 
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
@@ -202,100 +246,122 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 
                 
-                if frameCounter == 0:
+                if frameCounter == 0 and obj_detect_flag:
                     frame_objects, detected_objects, YMAX = self.inDetectedPs.recv()
                 # check if list is not empty
                     if detected_objects and YMAX:
-                        #print(detected_objects, YMAX)
+                        print(detected_objects, YMAX)
                         
                         
                         for objects in detected_objects:
                             #print(objects)
-                            '''
-                            if 'stop' in objects:
+                            
+                            if 'stop' in objects and stop_fnd_flag and flag and idx == 2 and self.CURRENT_STATE == 'null':
                                 #self.CURRENT_STATE = 'stop_sign'
                                 self.CURRENT_STATE = 'found_stop_sign'
                                 print('**************************')
                                 print('FOUND STOP SIGN')
                                 print('**************************')
-                            '''
+                                stop_fnd_flag = False
+                                stop_flag = True
+                                flag = False
+                                obj_detect_flag = False
+                                stop_start = time.time()
+                            
                             
                             #if 'park' in objects and self.CURRENT_STATE != 'found_parking' and self.CURRENT_STATE != 'start_parking':
-                            '''
-                            if 'park' in objects and flag:
+                            
+                            elif 'park' in objects and park_fnd_flag and flag and idx == 0 and self.CURRENT_STATE == 'null':
                                 #self.CURRENT_STATE = 'found_parking'
                                 self.CURRENT_STATE = 'start_parking'
                                 print('**************************')
                                 print('FOUND PARKING SIGN')
                                 print('**************************')
+                                #park_flag = False
+                                park_fnd_flag = False
+                                park_flag = True
                                 flag = False
-                            '''
-                            '''
-                            if 'priority' in objects and flag:
-                                #self.CURRENT_STATE = 'right_of_way'
-                                self.CURRENT_STATE = 'priority'
+                                obj_detect_flag = False
+                                park_start = time.time()
+                            
+                            elif 'priority' in objects and priority_fnd_flag and flag and idx == 1 and self.CURRENT_STATE == 'null':
+                                self.CURRENT_STATE = 'right_of_way'
+                                #self.CURRENT_STATE = 'priority'
                                 print('**************************')
                                 print('FOUND PRIORITY SIGN')
                                 print('**************************')
+                                priority_fnd_flag = False
+                                priority_flag = True
                                 flag = False
-                                start = time.time()
-                            '''
-                            if 'crosswalk' or 'pedestrian' in objects and flag:
-                                #self.CURRENT_STATE = 'right_of_way'
+                                obj_detect_flag = False
+                                priority_start = time.time()
+                                #start = time.time()
+                            
+                            elif ('crosswalk' in objects or 'pedestrian' in objects) and pedestrian_fnd_flag and crosswalk_fnd_flag and flag and idx == 3:
                                 self.CURRENT_STATE = 'pedestrian_crossing'
-                                #print('**************************')
-                                #print('FOUND PEDESTRIAN/CROSSWALK SIGN')
-                                #print('**************************')
+                                print('**************************')
+                                print('FOUND PEDESTRIAN/CROSSWALK SIGN')
+                                print('**************************')
                                 #flag = False
+                                #pedestrian_fnd_flag = False
+                                pedestrian_fnd_flag = False
                                 pedestrian_flag = True
+                                crosswalk_fnd_flag = False
                                 #crosswalk_flag = True
                                 stencil = stencilX
-                                start = time.time()
+                                ped_start = time.time()
+                                flag = False
                             
                             #print(pedestrian_flag)
                             
+                            
+                            ####
+                            # Doing commands
+                            ####
                             if pedestrian_flag:
-                                
                                 if 'pedestrian' in objects:
-                                    start = time.time()
+                                    ped_start = time.time()
                                 else:
-                                    end = time.time()
-                                    print('waiting for pedestrian', end - start)
-                                    if abs(end - start) > 10:
+                                    ped_end = time.time()
+                                    print('waiting for pedestrian', ped_end - ped_start)
+                                    if abs(ped_end - ped_start) > 5:
                                         print('no pedestrian in site')
                                         self.CURRENT_STATE = 'null'
-                                        start = time.time()
+                                        ped_start = time.time()
                                         pedestrian_flag = False
-                                        flag = False
                                         crosswalk_flag = True
+                                        
                                 #print(objects, int(end - start))
                             elif crosswalk_flag:
                                 print('going through crosswalk')
-                                end = time.time()
-                                if end - start > 4:
+                                ped_end = time.time()
+                                if ped_end - ped_start > 5:
                                     stencil = stencil_reg
                                     crosswalk_flag = False
-                            
+                                    flag = True
+                                    idx = idx + 1
                             #if not flag:
                             #    print(flag)
                     elif pedestrian_flag:
                         
-                        end = time.time()
-                        print('waiting for pedestrian', end - start)
-                        if abs(end - start) > 5:
+                        ped_end = time.time()
+                        print('waiting for pedestrian', ped_end - ped_start)
+                        if abs(ped_end - ped_start) > 5:
                             print('no pedestrian in site')
                             self.CURRENT_STATE = 'null'
-                            start = time.time()
+                            ped_start = time.time()
                             pedestrian_flag = False
                             flag = False
                             crosswalk_flag = True
                         #print(objects, int(end - start))
                     elif crosswalk_flag:
                         print('going through crosswalk')
-                        end = time.time()
-                        if end - start > 4:
+                        ped_end = time.time()
+                        if ped_end - ped_start > 5:
                             stencil = stencil_reg
                             crosswalk_flag = False
+                            flag = True
+                            idx = idx + 1
                 else:
                     frame_objects = rgb_img
                     
@@ -322,53 +388,87 @@ class CameraStreamerProcess(WorkerProcess):
                 if keep_driving:
                     outPs.send(lane_centering_cmds)
                     #keep_driving = False
-                '''   
+                '''
+                if True:
                     
-                if self.CURRENT_STATE == 'pedestrian_crossing':
-                    #print('setting up pedestrian crossing commands')
-                    outPs.send(['pedestrian_crossing'])
-                    
-                    #for jj in range(0,5):
-                    #    outPs.send(['pedestrian_crossing'])
-                    #keep_driving = False
-                elif keep_driving:
-                    outPs.send(lane_centering_cmds)
-                
-                '''
-                if priority_flag and self.CURRENT_STATE == 'right_of_way':
-                    print('setting right of way commands')
-                    outPs.send(['right_of_way'])
-                    for jj in range(0,5):
-                        outPs.send(['right_of_way'])
-                    priority_flag = False
-                    self.CURRENT_STATE = 'null'
-                    #keep_driving = False
-                elif keep_driving:
-                    outPs.send(lane_centering_cmds)
-                
-                '''
-                '''
-                if park_flag:
-                    outPs.send(['parallel_park'])
-                    park_flag = False
-                
-                
-                if self.CURRENT_STATE == 'start_parking' and park_flag:
-                    outPs.send(['parallel_park'])
-                    self.CURRENT_STATE = 'null'
-                    park_flag = False
-                    keep_driving = False
-                elif keep_driving:
-                    outPs.send(lane_centering_cmds)
-                
-                
-                elif self.CURRENT_STATE == 'start_stopsign_proc' and stop_flag:
+                    if self.CURRENT_STATE == 'pedestrian_crossing':
+                        #print('setting up pedestrian crossing commands')
+                        outPs.send(['pedestrian_crossing'])
+                        
+                        #for jj in range(0,5):
+                        #    outPs.send(['pedestrian_crossing'])
+                        #keep_driving = False
+                    #elif keep_driving:
+                    #    outPs.send(lane_centering_cmds)
                     
                     
-                    outPs.send(['stop_sign'])
-                    self.CURRENT_STATE == 'null'
-                    stop_flag = False
-                '''
+                    elif priority_flag and self.CURRENT_STATE == 'right_of_way':
+                        #print('setting right of way commands')
+                        #outPs.send(['right_of_way'])                 
+                        
+                        for jj in range(0,10):
+                            outPs.send(['right_of_way'])
+                        priority_flag = False
+                        #self.CURRENT_STATE = 'null'
+                        idx = idx + 1
+                    elif not priority_flag and self.CURRENT_STATE == 'right_of_way':
+                        priority_end = time.time()
+                        if priority_end - priority_start >= 15:
+                            flag = True
+                            self.CURRENT_STATE = 'null'
+                            obj_detect_flag = True
+                        else:
+                            outPs.send(lane_centering_cmds)                   
+                    
+                    elif self.CURRENT_STATE == 'start_parking' and park_flag:
+                        
+                        park_end = time.time()
+                        if park_end - park_start >= 2:
+                            
+                            for jj in range(0,10):
+                                outPs.send(['parallel_park'])
+                            #outPs.send(['parallel_park'])
+                            
+                            #time.sleep(30)
+                            park_start = time.time()
+                            
+                            #self.CURRENT_STATE = 'null'
+                            park_flag = False
+                            #flag = True
+                            idx = idx + 1
+                        else:
+                            outPs.send(lane_centering_cmds)  
+                    elif self.CURRENT_STATE == 'start_parking' and not park_flag:
+                        
+                       park_end = time.time()
+                       
+                       if park_end - park_start >= 49:
+                           flag = True
+                           self.CURRENT_STATE = 'null'
+                           obj_detect_flag = True
+                    
+                    elif self.CURRENT_STATE == 'found_stop_sign' and stop_flag:
+                        stop_end = time.time()
+                        
+                        if stop_end - stop_start >= 3:
+                            for jj in range(0,10):
+                                outPs.send(['stop_sign'])
+                            #self.CURRENT_STATE == 'null'
+                            stop_flag = False
+                            stop_start = time.time()
+                            #flag = True
+                            idx = idx + 1
+                    elif self.CURRENT_STATE == 'found_stop_sign' and not stop_flag:
+                        stop_end = time.time()
+                        if stop_end - stop_start >= 19:
+                            flag = True
+                            self.CURRENT_STATE = 'null'
+                            obj_detect_flag = True
+                    
+                    elif keep_driving:
+                        outPs.send(lane_centering_cmds)
+                outPs.send(lane_centering_cmds) 
+                    
                 ### else only focus on lane centering
                 #else:
                 #    outPs.send(lane_centering_cmds)
@@ -431,7 +531,7 @@ class CameraStreamerProcess(WorkerProcess):
     def _make_points(self, lines):
         slope, intercept = lines
         y1 = self.HEIGHT
-        y2 = int(y1 * 1/3)
+        y2 = int(y1 * 2/3)
         
         x1 = max(-self.WIDTH, min(2*self.WIDTH, int(y1 - intercept)/slope))
         x2 = max(-self.WIDTH, min(2*self.WIDTH, int(y2 - intercept)/slope))
@@ -445,8 +545,14 @@ class CameraStreamerProcess(WorkerProcess):
 
     def _set_delay_state(self, ):
         print('-----delay state-----')
-        self.CURRENT_STATE = 'right_of_way'
-
+        if self.CURRENT_STATE == 'found_stop_sign':
+            self.CURRENT_STATE = 'start_stopsign_proc'
+        #elif self.CURRENT_STATE == 'right_of_way':
+        #    self.CURRENT_STATE = 'right_of_way_proc'
+        #elif self.CURRENT_STATE == 'start_parking':
+        #    self.CURRENT_STATE = 'null'
+        #self.CURRENT_STATE = 'right_of_way'
+        
 
     def _display_lines(self, frame, lines):
         line_img = np.zeros((self.HEIGHT, self.WIDTH, 3))
@@ -480,7 +586,7 @@ class CameraStreamerProcess(WorkerProcess):
             right_x1, _, right_x2, _ = lines[1][0]
             #print(lines[0][0])
             x_offset = (left_x2 + right_x2) / 2
-            y_offset = int(self.HEIGHT / 2)
+            y_offset = int(self.HEIGHT *  2 / 3)
             
             
             #print(left_x1, left_x2, right_x1, right_x2)
@@ -492,7 +598,7 @@ class CameraStreamerProcess(WorkerProcess):
                 x_offset = int(x2 - x1)
                 #print(x_offset)
                 x_offset = x_offset + mid
-                y_offset = int(self.HEIGHT / 2)
+                #y_offset = int(self.HEIGHT / 2)
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (int(mid), self.HEIGHT), (0,255,0), 3)
                 #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
@@ -504,7 +610,7 @@ class CameraStreamerProcess(WorkerProcess):
                 x_offset = int(x2 - x1)
                 #print(x_offset)
                 x_offset = x_offset + mid
-                y_offset = int(self.HEIGHT / 2)
+                #y_offset = int(self.HEIGHT / 2)
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (int(mid), self.HEIGHT), (0,255,0), 3)
                 #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
@@ -519,7 +625,7 @@ class CameraStreamerProcess(WorkerProcess):
                 x_offset = int(x2 - x1)
                 
                 x_offset = x_offset + mid
-                y_offset = int(self.HEIGHT / 2)
+                #y_offset = int(self.HEIGHT / 2)
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (int(mid), self.HEIGHT), (0,255,0), 3)
                 #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
@@ -539,7 +645,7 @@ class CameraStreamerProcess(WorkerProcess):
             x_offset = int(x2 - x1)
             #print(x_offset)
             x_offset = x_offset + mid
-            y_offset = int(self.HEIGHT / 2)
+            y_offset = int(self.HEIGHT * 2 / 3)
             # draw center line
             
             
@@ -565,9 +671,11 @@ class CameraStreamerProcess(WorkerProcess):
     
     def _steering_cmd(self, x1):
         if x1 <= 110:
-            return ['forward', 'left', 'left']
+            #return ['forward', 'left', 'left']
+            return ['forward', 'left']
         elif x1 >= 210:
-            return ['forward', 'right', 'right']
+            #return ['forward', 'right', 'right']
+            return ['forward', 'right']
         else:
             return ['forward', 'straight']
     

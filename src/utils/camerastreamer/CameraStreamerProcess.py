@@ -420,8 +420,8 @@ class CameraStreamerProcess(WorkerProcess):
                 frame_objects = rgb_img
                 
                 # draw lines to grayscale image
-                #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
+                lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
+                #lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
    
                 
                 #plt.imshow(lane_lines_img)
@@ -524,8 +524,8 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                self._send_command(outPs, fake_cmds)
-                #self._send_command(outPs, lane_centering_cmds)
+                #self._send_command(outPs, fake_cmds)
+                self._send_command(outPs, lane_centering_cmds)
                     
                 ### else only focus on lane centering
                 #else:
@@ -734,15 +734,15 @@ class CameraStreamerProcess(WorkerProcess):
     def _steering_cmd(self, x1):
         #if x1 <= 110:
         print(x1)
-        if x1 <= 260 and x1 >= 200:
+        if x1 <= 200 and x1 >= 140:
             #return ['forward', 'left', 'left']
             return ['forward', 'left']
-        elif x1 < 260:
+        elif x1 < 140:
             return ['forward', 'leftleft']
-        elif x1 >= 380 and x1 <= 440:
+        elif x1 >= 340 and x1 <= 400:
             #return ['forward', 'right', 'right']
             return ['forward', 'right']
-        elif x1 > 440:
+        elif x1 > 400:
             return ['forward', 'rightright']
         else:
             return ['forward', 'straight']

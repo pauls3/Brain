@@ -114,6 +114,7 @@ class CameraStreamerProcess(WorkerProcess):
         for cmd in commands:
             cmd_ =  self.rcBrain.getMessage(cmd)
             if cmd_ is not None:
+                print(cmd_)
                 encode = json.dumps(cmd_).encode()
                 decode = encode.decode()
                 command = json.loads(decode)

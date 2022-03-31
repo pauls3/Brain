@@ -70,6 +70,8 @@ class RcBrainThread:
         #self.pids_ki = 0.810000
         #self.pids_kd = 0.000222
         #self.pids_tf = 0.040000
+        self.steerKey = ""
+
 
         #----------------- CONSTANT VALUES --------------------
         #this values do not change
@@ -83,7 +85,7 @@ class RcBrainThread:
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
         # maxsteerangle 20.5
-        self.default_configParam = RcBrainConfigParams(10, 10.0, 20.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5, 10.0, 20.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 
@@ -259,7 +261,11 @@ class RcBrainThread:
                     self.steerAngle -= self.configParam.steerAngleStep
             '''
             #if self.steerAngle == 0:
-            self.steerAngle = -self.configParam.maxSteerAngle
+            if self.steerKey == 'leftleft':
+                self.steerAngle = -self.configParam.maxSteerAngle
+            else:
+                self.steerAngle = -10.0
+            
         #right steer    
         elif self.currentState[3] == True:
             '''
@@ -272,7 +278,11 @@ class RcBrainThread:
                     self.steerAngle += self.configParam.steerAngleStep
             '''
             #if self.steerAngle == 0:
-            self.steerAngle = self.configParam.maxSteerAngle
+            #self.steerAngle = self.configParam.maxSteerAngle
+            if self.steerKey == 'rightright':
+                self.steerAngle = self.configParam.maxSteerAngle
+            else:
+                self.steerAngle = 10.0
         #elif not self.currentState[2] and not self.currentState[3]:
         #        self.steerAngle = 0
 
@@ -374,12 +384,21 @@ class RcBrainThread:
             self.currentState[1] = True
         elif currentKey == 'left':
             self.currentState[2] = True
+            self.steerKey = 'left'
+        elif currentKey == 'leftleft':
+            self.currentState[2] = True
+            self.steerKey = 'leftleft'
         elif currentKey == 'right':
             self.currentState[3] = True
+            self.steerKey = 'right'
+        elif currentKey == 'rightright':
+            self.currentState[3] = True
+            self.steerKey = 'rightright'
         elif currentKey == 'stop':
             self.currentState[4] = True
         elif currentKey == 'straight':
             self.currentState[7] = True
+            self.steerKey = ''
         elif currentKey == 'park':
             self.currentState[8] = True
         #elif currentKey == 'none':

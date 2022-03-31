@@ -524,8 +524,8 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                #self._send_command(outPs, fake_cmds)
-                self._send_command(outPs, lane_centering_cmds)
+                self._send_command(outPs, fake_cmds)
+                #self._send_command(outPs, lane_centering_cmds)
                     
                 ### else only focus on lane centering
                 #else:
@@ -733,7 +733,7 @@ class CameraStreamerProcess(WorkerProcess):
     
     def _steering_cmd(self, x1):
         #if x1 <= 110:
-        #print(x1)
+        print(x1)
         if x1 <= 240:
             #return ['forward', 'left', 'left']
             return ['forward', 'left']

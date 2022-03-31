@@ -577,11 +577,11 @@ class CameraStreamerProcess(WorkerProcess):
                 #if slope < 0:
                 if True:
                     
-                    if x1 < left_region_boundary and x2 < left_region_boundary and angle % 180 > 30.0:
+                    if x1 < left_region_boundary and x2 < left_region_boundary and abs(angle) % 90 > 30.0:
                         left_fit.append((slope, intercept))
                         print(angle)
                     else:
-                        if x1 > right_region_boundary and x2 > right_region_boundary and angle % 180 > 30.0:
+                        if x1 > right_region_boundary and x2 > right_region_boundary and abs(angle) % 90 > 30.0:
                             right_fit.append((slope, intercept))
                             #print(angle)
                             

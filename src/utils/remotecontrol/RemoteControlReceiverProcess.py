@@ -90,10 +90,10 @@ class RemoteControlReceiverProcess():
     def get_commands(self, command):
         command_ =  self.rcBrain.getMessage(command)
         if command_ is not None:
-           encode = json.dumps(command_).encode()
-           decode = encode.decode()
-           cmd = json.loads(decode)
-           return cmd
+            encode = json.dumps(command_).encode()
+            decode = encode.decode()
+            cmd = json.loads(decode)
+            return cmd
         else:
             return None
 

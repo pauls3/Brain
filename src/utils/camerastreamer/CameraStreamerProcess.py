@@ -109,6 +109,7 @@ class CameraStreamerProcess(WorkerProcess):
         #print(command)
         for cmd in commands:
             translated_cmd = self.controller.get_commands(cmd)
+            print (translated_cmd)
             if translated_cmd is not None:
                 for ii in range(0,7):
                     #for outP in outPs:

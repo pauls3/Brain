@@ -42,7 +42,7 @@ import matplotlib.pyplot as plt
 class RemoteControlReceiverProcess(WorkerProcess):
     COMMAND = "null"
     # ===================================== INIT =========================================
-    def __init__(self, inPs, outPs):
+    def __init__(self, outPs):
         """Run on raspberry. It forwards the control messages received from socket to the serial handler
         
         Parameters
@@ -53,9 +53,9 @@ class RemoteControlReceiverProcess(WorkerProcess):
             List of output pipes (order does not matter)
         """
 
-        super(RemoteControlReceiverProcess,self).__init__( inPs, outPs)
+        super(RemoteControlReceiverProcess,self).__init__(outPs)
         self.rcBrain   =  RcBrainThread()
-        self.lisBrR, self.lisBrS = Pipe(duplex=False)
+        # self.lisBrR, self.lisBrS = Pipe(duplex=False)
         self.CURRENT_STATE = "null"
         self.PARKING = True
         self.STOP_SIGN = True
@@ -88,6 +88,10 @@ class RemoteControlReceiverProcess(WorkerProcess):
         stop = 'stop'
         straight = 'straight'
         return [f, b]
+
+
+    def recieve_command(self, commands):
+        print(commands)
 
 
     def _run_car(self, outPs, inP):       

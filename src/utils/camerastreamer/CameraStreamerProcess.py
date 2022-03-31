@@ -39,6 +39,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
+from src.utils.remotecontrol.RemoteControlReceiverProcess import RemoteControlReceiverProcess
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
 
@@ -58,12 +59,12 @@ class CameraStreamerProcess(WorkerProcess):
         outPs : list(Pipe) 
             List of output pipes (not used at the moment)
         """
-        super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
+        super(CameraStreamerProcess,self).__init__(inPipes)
         self.HEIGHT = 320
         self.WIDTH = 320
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
-        self.outPs = outPipes[0]
+        #self.outPs = outPipes[0]
         #self.outImgPs = outPipes[1]
         
         self.PARKING = True
@@ -71,6 +72,8 @@ class CameraStreamerProcess(WorkerProcess):
         self.CURRENT_STATE = 'null'
         self.FLAG = True
         self.delayState = 'null'
+        
+        self.controller = RemoteControlReceiverProcess()
         
         #self.inDetected, self.outImg = Pipe(duplex=False)
         
@@ -471,6 +474,8 @@ class CameraStreamerProcess(WorkerProcess):
                         outPs.send(lane_centering_cmds)
 
                 '''
+
+                self.controller.send_command(lane_centering_cmds)
                 #outPs.send(lane_centering_cmds) 
                     
                 ### else only focus on lane centering

@@ -59,7 +59,7 @@ def main():
 
     inCmd, outCmd   = Pipe(duplex = False)
     
-    inImg, outImg = Pipe(duplex = False)
+    #inImg, outImg = Pipe(duplex = False)
     #inDetected, outDetected = Pipe(duplex = False)
     # =============================== HARDWARE ===============================================
     if enableStream:
@@ -74,7 +74,8 @@ def main():
             allProcesses.append(camProc)
 
         #streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
-        streamProc = CameraStreamerProcess([camStR], [outCmd])
+        #streamProc = CameraStreamerProcess([camStR], [outCmd])
+        streamProc = CameraStreamerProcess([camStR], [])
         allProcesses.append(streamProc)
         
         #objDetectorProc = ObjectDetector([inImg], [outDetected])
@@ -96,7 +97,8 @@ def main():
         shProc = SerialHandlerProcess([rcShR], [])
         allProcesses.append(shProc)
 
-        rcProc = RemoteControlReceiverProcess([inCmd],[rcShS])
+        #rcProc = RemoteControlReceiverProcess([inCmd],[rcShS])
+        rcProc = RemoteControlReceiverProcess([],[rcShS])
         allProcesses.append(rcProc)
 
 

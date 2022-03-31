@@ -64,14 +64,18 @@ class CameraStreamerProcess(WorkerProcess):
         self.WIDTH = 320
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
-        #self.outPs = outPipes[0]
+        self.outPs = outPipes[0]
         #self.outImgPs = outPipes[1]
         
-        self.PARKING = True
-        self.STOP = True
         self.CURRENT_STATE = 'null'
         self.FLAG = True
         self.delayState = 'null'
+
+        self.CURRENT_DRIVE_STATE = "null"
+        self.PARKING = True
+        self.STOP_SIGN = True
+        self.PRIORITY = True
+        self.PEDESTRIAN = True
         
         self.controller = RemoteControlReceiverProcess()
         
@@ -99,6 +103,28 @@ class CameraStreamerProcess(WorkerProcess):
         streamTh.daemon = True
         self.threads.append(streamTh)
         
+
+    # ===================================== SEND COMMANDS =================================
+    def _send_command(self, outPs, commands):
+        #print(command)
+        for cmd in commands:
+            translated_cmd = self.controller.get_commands(cmd)
+            if translated_cmd is not None:
+                for ii in range(0,7):
+                    for outP in outPs:
+                        outP.send(cmd)
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # ===================================== SEND THREAD ==================================
     def _process_image(self, inP, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
@@ -475,7 +501,8 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                self.controller.send_command(lane_centering_cmds)
+                self._send_command(outPs, lane_centering_cmds)
+                #self.controller.send_command(lane_centering_cmds)
                 #outPs.send(lane_centering_cmds) 
                     
                 ### else only focus on lane centering

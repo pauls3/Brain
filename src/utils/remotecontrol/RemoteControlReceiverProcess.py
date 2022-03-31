@@ -30,16 +30,12 @@ import json
 import socket
 import time
 
-from threading       import Thread
-from multiprocessing import Pipe
-
-from src.templates.workerprocess import WorkerProcess
 from src.utils.remotecontrol.RcBrainThread              import RcBrainThread
 import cv2
 import matplotlib.pyplot as plt
 
 
-class RemoteControlReceiverProcess(WorkerProcess):
+class RemoteControlReceiverProcess():
     COMMAND = "null"
     # ===================================== INIT =========================================
     def __init__(self, outPs):
@@ -53,7 +49,6 @@ class RemoteControlReceiverProcess(WorkerProcess):
             List of output pipes (order does not matter)
         """
 
-        super(RemoteControlReceiverProcess,self).__init__(outPs)
         self.rcBrain   =  RcBrainThread()
         # self.lisBrR, self.lisBrS = Pipe(duplex=False)
         self.CURRENT_STATE = "null"
@@ -66,16 +61,18 @@ class RemoteControlReceiverProcess(WorkerProcess):
     def run(self):
         """Apply the initializing methods and start the threads
         """
-        super(RemoteControlReceiverProcess,self).run()
+        #super(RemoteControlReceiverProcess,self).run()
 
-        
+        print("rc control translator")
 
     # ===================================== INIT THREADS =================================
+    '''
     def _init_threads(self):
         """Initialize the read thread to transmite the received messages to other processes. 
         """
         runCar = Thread(name='RunCar',target = self._run_car, args = (self.outPs, self.inPs, ))
         self.threads.append(runCar)
+    '''
     
 
     # returns array of commands
@@ -90,8 +87,15 @@ class RemoteControlReceiverProcess(WorkerProcess):
         return [f, b]
 
 
-    def recieve_command(self, commands):
-        print(commands)
+    def get_commands(self, command):
+        command_ =  self.rcBrain.getMessage(command)
+        if command_ is not None:
+           encode = json.dumps(command_).encode()
+           decode = encode.decode()
+           cmd = json.loads(decode)
+           return cmd
+        else:
+            return None
 
 
     def _run_car(self, outPs, inP):       

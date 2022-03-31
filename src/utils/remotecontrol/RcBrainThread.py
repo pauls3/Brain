@@ -215,13 +215,15 @@ class RcBrainThread:
         if self.currentState[0]:
             if self.speed == 0:
                 self.speed = self.startSpeed
-            elif self.speed == -self.startSpeed:
-                self.speed = 0
-            elif self.speed < self.configParam.maxSpeed:
-                if  self.configParam.maxSpeed - self.speed < self.configParam.speedStep:
-                    self.speed = self.configParam.maxSpeed
-                else:
-                    self.speed += self.configParam.speedStep
+            else:
+                self.currentState[0] = False
+            # elif self.speed == -self.startSpeed:
+            #     self.speed = 0
+            # elif self.speed < self.configParam.maxSpeed:
+            #     if  self.configParam.maxSpeed - self.speed < self.configParam.speedStep:
+            #         self.speed = self.configParam.maxSpeed
+            #     else:
+            #         self.speed += self.configParam.speedStep
             #self.currentState[0] = False
         #backwards
         elif self.currentState[1]:
@@ -229,11 +231,13 @@ class RcBrainThread:
                 self.speed = - self.startSpeed
             elif self.speed == self.startSpeed:
                 self.speed = 0
-            elif self.speed >  -self.configParam.maxSpeed:
-                if  abs(self.configParam.maxSpeed + self.speed) < self.configParam.speedStep:
-                    self.speed = - self.configParam.maxSpeed
-                else:
-                    self.speed -= self.configParam.speedStep
+            else:
+                self.currentState[1] = False
+            # elif self.speed >  -self.configParam.maxSpeed:
+            #     if  abs(self.configParam.maxSpeed + self.speed) < self.configParam.speedStep:
+            #         self.speed = - self.configParam.maxSpeed
+            #     else:
+            #         self.speed -= self.configParam.speedStep
 
     # ===================================== UPDATE STEER ANGLE ===========================
     def _updateSteerAngle(self):

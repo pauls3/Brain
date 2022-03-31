@@ -57,7 +57,8 @@ def main():
     # =============================== INITIALIZING PROCESSES =================================
     allProcesses = list()
 
-    inCmd, outCmd   = Pipe(duplex = False)
+    #inCmd, outCmd   = Pipe(duplex = False)
+    rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
     
     #inImg, outImg = Pipe(duplex = False)
     #inDetected, outDetected = Pipe(duplex = False)
@@ -75,7 +76,7 @@ def main():
 
         #streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
-        streamProc = CameraStreamerProcess([camStR], [])
+        streamProc = CameraStreamerProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
         #objDetectorProc = ObjectDetector([inImg], [outDetected])
@@ -90,16 +91,16 @@ def main():
 
 
     # =============================== CONTROL =================================================
-    if enableRc:
-        rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
+    #if enableRc:
+    # rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
 
-        # serial handler process
-        shProc = SerialHandlerProcess([rcShR], [])
-        allProcesses.append(shProc)
+    # serial handler process
+    shProc = SerialHandlerProcess([rcShR], [])
+    allProcesses.append(shProc)
 
-        #rcProc = RemoteControlReceiverProcess([inCmd],[rcShS])
-        rcProc = RemoteControlReceiverProcess([],[rcShS])
-        allProcesses.append(rcProc)
+    #rcProc = RemoteControlReceiverProcess([inCmd],[rcShS])
+    #rcProc = RemoteControlReceiverProcess([],[rcShS])
+    #allProcesses.append(rcProc)
 
 
     # ===================================== START PROCESSES ==================================

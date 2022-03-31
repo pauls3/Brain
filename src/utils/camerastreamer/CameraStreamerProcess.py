@@ -228,7 +228,7 @@ class CameraStreamerProcess(WorkerProcess):
         self._send_command(outPs, cmds)
         time.sleep(5)
 
-        fake_cmds = ['right', 'left']
+        fake_cmds = []
         
         while self.FLAG:
             try:
@@ -426,7 +426,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #plt.imshow(lane_lines_img)
                 #plt.show()
                 
-                out_img = cv2.resize(lane_lines_img, (1080, 1080))
+                out_img = cv2.resize(lane_lines_img, (640, 480))
                 cv2.imshow(winname, out_img)
                 cv2.waitKey(1)
                 

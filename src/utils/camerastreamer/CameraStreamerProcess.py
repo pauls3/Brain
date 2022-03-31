@@ -63,8 +63,8 @@ class CameraStreamerProcess(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
-        self.HEIGHT = 320
-        self.WIDTH = 320
+        self.HEIGHT = 480
+        self.WIDTH = 640
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
@@ -149,8 +149,8 @@ class CameraStreamerProcess(WorkerProcess):
         """        
         stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_reg = stencil_reg.astype('uint8')
-        stencilX = np.zeros((self.HEIGHT, self.WIDTH))
-        stencilX = stencilX.astype('uint8')
+        #stencilX = np.zeros((self.HEIGHT, self.WIDTH))
+        #stencilX = stencilX.astype('uint8')
         # specify coordinates of the polygon
         #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
         #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
@@ -163,9 +163,9 @@ class CameraStreamerProcess(WorkerProcess):
         #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
         #poly2 = np.array([[260, 300], [260,140], [320,140], [320, 320]])
         
-        poly1 = np.array([[0, 320], [0,275], [60, 275], [70, 320]])
-        poly2 = np.array([[260, 320], [260,275], [320,275], [320, 320]])
-        cv2.fillPoly(stencilX, [poly1, poly2], 1)
+        #poly1 = np.array([[0, 320], [0,275], [60, 275], [70, 320]])
+        #poly2 = np.array([[260, 320], [260,275], [320,275], [320, 320]])
+        #cv2.fillPoly(stencilX, [poly1, poly2], 1)
         #ii = 0
         cmdOut = "none"
         

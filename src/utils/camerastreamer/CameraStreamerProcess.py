@@ -118,7 +118,7 @@ class CameraStreamerProcess(WorkerProcess):
                 decode = encode.decode()
                 command = json.loads(decode)
                 #for outP in outPs:
-                for ii in range(0,7):
+                for ii in range(0,1):
                     outPs.send(command)
             # translated_cmd = self.controller.get_commands(cmd)
             # print (translated_cmd)
@@ -226,6 +226,9 @@ class CameraStreamerProcess(WorkerProcess):
         print('**************************')
         cmds = ['pid', 'stop','straight']
         self._send_command(outPs, cmds)
+        time.sleep(5)
+
+        fake_cmds = ['right', 'left']
         
         while self.FLAG:
             try:
@@ -520,7 +523,7 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                self._send_command(outPs, lane_centering_cmds)
+                self._send_command(outPs, fake_cmds)
                 #self.controller.send_command(lane_centering_cmds)
                 #outPs.send(lane_centering_cmds) 
                     

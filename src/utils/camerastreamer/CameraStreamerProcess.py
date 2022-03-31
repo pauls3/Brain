@@ -578,10 +578,11 @@ class CameraStreamerProcess(WorkerProcess):
                     
                     if x1 < left_region_boundary and x2 < left_region_boundary :
                         left_fit.append((slope, intercept))
-                        print(angle)
+                        # print(angle)
                     else:
                         if x1 > right_region_boundary and x2 > right_region_boundary:
                             right_fit.append((slope, intercept))
+                            print(angle)
                             
         left_fit_average = np.average(left_fit, axis=0)
         if len(left_fit) > 0:

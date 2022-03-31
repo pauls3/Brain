@@ -95,12 +95,12 @@ class CameraStreamerProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs, self.outPs, ))
+        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
         
     # ===================================== SEND THREAD ==================================
-    def _process_image(self, inP, outPs):
+    def _process_image(self, inP):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters

@@ -471,7 +471,7 @@ class CameraStreamerProcess(WorkerProcess):
                         outPs.send(lane_centering_cmds)
 
                 '''
-                outPs.send(lane_centering_cmds) 
+                #outPs.send(lane_centering_cmds) 
                     
                 ### else only focus on lane centering
                 #else:

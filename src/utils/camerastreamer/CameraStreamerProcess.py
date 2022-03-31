@@ -570,19 +570,20 @@ class CameraStreamerProcess(WorkerProcess):
                 slope = fit[0]
                 intercept = fit[1]
 
-                angle = (np.arctan2(y2 - y1, x2 - x1) * 180.0 / np.pi) % 90.0
+                angle = (np.arctan2(y2 - y1, x2 - x1) * 180.0 / np.pi)
                 
 
-                if angle > 60.0:
+                #if angle > 60.0:
                 #if slope < 0:
+                if True:
                     
-                    if x1 < left_region_boundary and x2 < left_region_boundary :
+                    if x1 < left_region_boundary and x2 < left_region_boundary and angle % 180:
                         left_fit.append((slope, intercept))
-                        # print(angle)
+                        print(angle)
                     else:
-                        if x1 > right_region_boundary and x2 > right_region_boundary:
+                        if x1 > right_region_boundary and x2 > right_region_boundary and angle % 90:
                             right_fit.append((slope, intercept))
-                            print(angle)
+                            #print(angle)
                             
         left_fit_average = np.average(left_fit, axis=0)
         if len(left_fit) > 0:

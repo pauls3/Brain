@@ -59,7 +59,7 @@ class CameraStreamerProcess(WorkerProcess):
         outPs : list(Pipe) 
             List of output pipes (not used at the moment)
         """
-        super(CameraStreamerProcess,self).__init__(inPipes)
+        super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
         self.HEIGHT = 320
         self.WIDTH = 320
         self.inPs = inPipes[0]

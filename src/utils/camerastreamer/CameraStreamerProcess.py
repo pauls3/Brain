@@ -734,10 +734,10 @@ class CameraStreamerProcess(WorkerProcess):
     def _steering_cmd(self, x1):
         #if x1 <= 110:
         #print(x1)
-        if x1 <= 200:
+        if x1 <= 240:
             #return ['forward', 'left', 'left']
             return ['forward', 'left']
-        elif x1 >= 380:
+        elif x1 >= 400:
             #return ['forward', 'right', 'right']
             return ['forward', 'right']
         else:

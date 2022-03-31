@@ -190,7 +190,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
            encode = json.dumps(command_).encode()
            decode = encode.decode()
            command = json.loads(decode)
-           for ii in range(0,1):
+           for ii in range(0,7):
                for outP in outPs:
                    outP.send(command)
            

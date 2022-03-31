@@ -736,12 +736,12 @@ class CameraStreamerProcess(WorkerProcess):
         print(x1)
         if x1 <= 200 and x1 >= 140:
             #return ['forward', 'left', 'left']
-            return ['forward', 'left']
+            return ['forward', 'leftleft']
         elif x1 < 140:
             return ['forward', 'leftleft']
         elif x1 >= 340 and x1 <= 400:
             #return ['forward', 'right', 'right']
-            return ['forward', 'right']
+            return ['forward', 'rightright']
         elif x1 > 400:
             return ['forward', 'rightright']
         else:

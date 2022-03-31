@@ -420,7 +420,7 @@ class CameraStreamerProcess(WorkerProcess):
                 frame_objects = rgb_img
                 
                 # draw lines to grayscale image
-                lane_lines_img, lane_centering_cmds = self._display_lines(lines, lane_lines)
+                lane_lines_img, lane_centering_cmds = self._display_lines(thresh, lane_lines)
                 #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
                 #lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
    

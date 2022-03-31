@@ -111,8 +111,8 @@ class CameraStreamerProcess(WorkerProcess):
             translated_cmd = self.controller.get_commands(cmd)
             if translated_cmd is not None:
                 for ii in range(0,7):
-                    for outP in outPs:
-                        outP.send(cmd)
+                    #for outP in outPs:
+                    outPs.send(cmd)
 
     
     

@@ -157,7 +157,7 @@ class CameraStreamerProcess(WorkerProcess):
         
         #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
         #polygon = np.array([[0, 320], [0,220], [320,220], [320, 320]])
-        polygon = np.array([[0, 480], [0,220], [640,220], [640, 480]])
+        polygon = np.array([[0, 480], [0,300], [640,300], [640, 480]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
         cv2.fillConvexPoly(stencil_reg, polygon, 1)
         #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
@@ -572,18 +572,13 @@ class CameraStreamerProcess(WorkerProcess):
 
                 angle = (np.arctan2(y2 - y1, x2 - x1) * 180.0 / np.pi)
                 
-
-                #if angle > 60.0:
-                #if slope < 0:
                 if True:
                     
                     if x1 < left_region_boundary and x2 < left_region_boundary and abs(angle) % 90 > 30.0:
                         left_fit.append((slope, intercept))
-                        print(angle)
                     else:
                         if x1 > right_region_boundary and x2 > right_region_boundary and abs(angle) % 90 > 30.0:
                             right_fit.append((slope, intercept))
-                            #print(angle)
                             
         left_fit_average = np.average(left_fit, axis=0)
         if len(left_fit) > 0:

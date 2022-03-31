@@ -38,7 +38,7 @@ import matplotlib.pyplot as plt
 class RemoteControlReceiverProcess():
     COMMAND = "null"
     # ===================================== INIT =========================================
-    def __init__(self, outPs):
+    def __init__(self):
         """Run on raspberry. It forwards the control messages received from socket to the serial handler
         
         Parameters

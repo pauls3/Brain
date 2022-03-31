@@ -30,6 +30,7 @@ import socket
 import struct
 import time
 import numpy as np
+import json
 
 from threading       import Thread
 from threading       import Timer
@@ -40,6 +41,8 @@ import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
 from src.utils.remotecontrol.RemoteControlReceiverProcess import RemoteControlReceiverProcess
+from src.utils.remotecontrol.RcBrainThread              import RcBrainThread
+
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
 
@@ -78,7 +81,8 @@ class CameraStreamerProcess(WorkerProcess):
         self.PEDESTRIAN = True
         
         self.controller = RemoteControlReceiverProcess()
-        
+        self.rcBrain = RcBrainThread()
+
         #self.inDetected, self.outImg = Pipe(duplex=False)
         
         #self.listener = ObjectDetector([self.inDetected], [self.outImg])
@@ -108,12 +112,20 @@ class CameraStreamerProcess(WorkerProcess):
     def _send_command(self, outPs, commands):
         #print(command)
         for cmd in commands:
-            translated_cmd = self.controller.get_commands(cmd)
-            print (translated_cmd)
-            if translated_cmd is not None:
+            cmd_ =  self.rcBrain.getMessage(cmd)
+            if cmd_ is not None:
+                encode = json.dumps(cmd_).encode()
+                decode = encode.decode()
+                command = json.loads(decode)
+                #for outP in outPs:
                 for ii in range(0,7):
-                    #for outP in outPs:
-                    outPs.send(cmd)
+                    outPs.send(command)
+            # translated_cmd = self.controller.get_commands(cmd)
+            # print (translated_cmd)
+            # if translated_cmd is not None:
+            #     for ii in range(0,7):
+            #         #for outP in outPs:
+            #         outPs.send(cmd)
 
     
     
@@ -208,6 +220,12 @@ class CameraStreamerProcess(WorkerProcess):
         
         tmp_idx = -1
         tmp_state = ""
+
+        print('**************************')
+        print('Starting PID')
+        print('**************************')
+        cmds = ['pid', 'stop','straight']
+        self._send_command(outPs, cmds)
         
         while self.FLAG:
             try:

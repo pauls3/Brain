@@ -46,7 +46,7 @@ from src.utils.remotecontrol.RemoteControlReceiverProcess import RemoteControlRe
 class CameraStreamerProcess(WorkerProcess):
     
     # ===================================== INIT =========================================
-    def __init__(self, inPipes):
+    def __init__(self, inPipes, outPipes):
         """Process used for sending images over the network to a targeted IP via UDP protocol 
         (no feedback required). The image is compressed before sending it. 
 
@@ -95,12 +95,12 @@ class CameraStreamerProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs, ))
+        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs, self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
         
     # ===================================== SEND THREAD ==================================
-    def _process_image(self, inP):
+    def _process_image(self, inP, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters

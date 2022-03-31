@@ -93,7 +93,7 @@ class CameraThread(ThreadWithStop):
         # camera settings
         #self.camera.resolution      =   (1664,1232)
         self.camera.resolution      =   (320,320)
-        self.camera.framerate       =   10
+        self.camera.framerate       =   30
 
         self.camera.brightness      =   50
         self.camera.shutter_speed   =   6000#1200
@@ -102,7 +102,7 @@ class CameraThread(ThreadWithStop):
         
 
         #self.imgSize                =   (1664,1232)    # the actual image size
-        self.imgSize                =    (320,320)      # the actual image size
+        self.imgSize                =    (640,640)      # the actual image size
 
 
     # ===================================== GET STAMP ====================================
@@ -128,7 +128,7 @@ class CameraThread(ThreadWithStop):
 
             # read and reshape from bytes to np.array
             data  = np.frombuffer(data, dtype=np.uint8)
-            data  = np.reshape(data, (320, 320, 3))
+            data  = np.reshape(data, (640, 640, 3))
             stamp = time.time()
 
             # output image and time stamp

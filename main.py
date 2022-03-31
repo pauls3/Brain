@@ -60,7 +60,7 @@ def main():
     inCmd, outCmd   = Pipe(duplex = False)
     
     inImg, outImg = Pipe(duplex = False)
-    inDetected, outDetected = Pipe(duplex = False)
+    #inDetected, outDetected = Pipe(duplex = False)
     # =============================== HARDWARE ===============================================
     if enableStream:
         camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
@@ -73,11 +73,12 @@ def main():
             camProc = CameraProcess([],[camStS])
             allProcesses.append(camProc)
 
-        streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
+        #streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
+        streamProc = CameraStreamerProcess([camStR], [outCmd])
         allProcesses.append(streamProc)
         
-        objDetectorProc = ObjectDetector([inImg], [outDetected])
-        allProcesses.append(objDetectorProc)
+        #objDetectorProc = ObjectDetector([inImg], [outDetected])
+        #allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================
     #LocSys client process

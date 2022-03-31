@@ -62,9 +62,9 @@ class CameraStreamerProcess(WorkerProcess):
         self.HEIGHT = 320
         self.WIDTH = 320
         self.inPs = inPipes[0]
-        self.inDetectedPs = inPipes[1]
+        #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
-        self.outImgPs = outPipes[1]
+        #self.outImgPs = outPipes[1]
         
         self.PARKING = True
         self.STOP = True
@@ -218,11 +218,11 @@ class CameraStreamerProcess(WorkerProcess):
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 
-                
+                '''
                 if frameCounter == 0 and obj_detect_flag:
                 #for out_frames in outImg:
                     self.outImgPs.send([rgb_img])
-                
+                '''
                 # convert to grayscale
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
@@ -245,7 +245,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 
                 
-                
+                '''
                 if frameCounter == 0 and obj_detect_flag:
                     frame_objects, detected_objects, YMAX = self.inDetectedPs.recv()
                 # check if list is not empty
@@ -364,7 +364,8 @@ class CameraStreamerProcess(WorkerProcess):
                             idx = idx + 1
                 else:
                     frame_objects = rgb_img
-                    
+                '''
+                frame_objects = rgb_img
                 
                 # draw lines to grayscale image
                 lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
@@ -388,6 +389,7 @@ class CameraStreamerProcess(WorkerProcess):
                 if keep_driving:
                     outPs.send(lane_centering_cmds)
                     #keep_driving = False
+                '''
                 '''
                 if True:
                     
@@ -467,6 +469,8 @@ class CameraStreamerProcess(WorkerProcess):
                     
                     elif keep_driving:
                         outPs.send(lane_centering_cmds)
+
+                '''
                 outPs.send(lane_centering_cmds) 
                     
                 ### else only focus on lane centering

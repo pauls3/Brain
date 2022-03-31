@@ -99,7 +99,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
         straight = 'straight'
        
         jj = 0
-        commands = []
+        commands = [r, l, r, l]
         #commands = [f, r, r, r, f, stop, straight, l, l, l, f, straight, stop]
         try:           
             self._start_pid(outPs, )
@@ -134,8 +134,10 @@ class RemoteControlReceiverProcess(WorkerProcess):
                         elif 'forward_test' in ii.recv():
                             self._forward_test(outPs, )
                         else:
-                            for cmd in ii.recv():
-                                self._send_command(outPs, cmd)
+                            #for cmd in ii.recv():
+                            #    self._send_command(outPs, cmd)
+                            for ii in commands:
+                                self._send_command(outPs, ii)
                 else:
                     continue
                 
@@ -188,7 +190,7 @@ class RemoteControlReceiverProcess(WorkerProcess):
            encode = json.dumps(command_).encode()
            decode = encode.decode()
            command = json.loads(decode)
-           for ii in range(0,7):
+           for ii in range(0,1):
                for outP in outPs:
                    outP.send(command)
            

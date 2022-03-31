@@ -93,7 +93,7 @@ class CameraThread(ThreadWithStop):
         # camera settings
         #self.camera.resolution      =   (1664,1232)
         self.camera.resolution      =   (640,480)
-        self.camera.framerate       =   30
+        self.camera.framerate       =   20
 
         self.camera.brightness      =   50
         self.camera.shutter_speed   =   6000#1200

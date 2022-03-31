@@ -561,6 +561,7 @@ class CameraStreamerProcess(WorkerProcess):
         left_region_boundary = self.WIDTH * (1-boundary)
         right_region_boundary = self.WIDTH * boundary
         
+        
         for line in lines:
             for x1, y1, x2, y2 in line:
                 if x1 == x2:
@@ -568,9 +569,13 @@ class CameraStreamerProcess(WorkerProcess):
                 fit = np.polyfit((x1, x2), (y1, y2,), 1)
                 slope = fit[0]
                 intercept = fit[1]
+
+                angle = (np.arctan2(y2 - y1, x2 - x1) * 180.0 / np.pi)
+                print(angle)
+
                 if True:
                 #if slope < 0:
-                    if x1 < left_region_boundary and x2 < left_region_boundary:
+                    if x1 < left_region_boundary and x2 < left_region_boundary :
                         left_fit.append((slope, intercept))
                     else:
                         if x1 > right_region_boundary and x2 > right_region_boundary:

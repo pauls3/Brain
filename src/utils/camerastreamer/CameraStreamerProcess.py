@@ -524,8 +524,8 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                self._send_command(outPs, fake_cmds)
-                #self._send_command(outPs, lane_centering_cmds)
+                #self._send_command(outPs, fake_cmds)
+                self._send_command(outPs, lane_centering_cmds)
                     
                 ### else only focus on lane centering
                 #else:

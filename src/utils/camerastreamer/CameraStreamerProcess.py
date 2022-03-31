@@ -420,7 +420,8 @@ class CameraStreamerProcess(WorkerProcess):
                 frame_objects = rgb_img
                 
                 # draw lines to grayscale image
-                lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
+                lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lines)
+                #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
                 #lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
    
                 
@@ -524,8 +525,8 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                #self._send_command(outPs, fake_cmds)
-                self._send_command(outPs, lane_centering_cmds)
+                self._send_command(outPs, fake_cmds)
+                #self._send_command(outPs, lane_centering_cmds)
                     
                 ### else only focus on lane centering
                 #else:

@@ -78,14 +78,14 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.startSpeed         =   10.0
+        self.startSpeed         =   12.0
         self.startSteerAngle    =   10.0
 
         #----------------- DEFAULT VALUES ----------------------
         #when the RC is reset, this are the default values
         # (maxSteerAngle, maxSpeed, steerAngleStep,speedStep, kpStep, kiStep, kdStep
         # maxsteerangle 20.5
-        self.default_configParam = RcBrainConfigParams(20.5, 10.0, 20.0, 2.0, 0.001, 0.001, 0.000001)
+        self.default_configParam = RcBrainConfigParams(20.5, 12.0, 20.0, 2.0, 0.001, 0.001, 0.000001)
         
         #----------------- PARAMETERS -------------------------
         #this parameter can be modified via key events. 

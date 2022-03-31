@@ -46,7 +46,7 @@ from src.utils.remotecontrol.RemoteControlReceiverProcess import RemoteControlRe
 class CameraStreamerProcess(WorkerProcess):
     
     # ===================================== INIT =========================================
-    def __init__(self, inPipes, outPipes):
+    def __init__(self, inPipes):
         """Process used for sending images over the network to a targeted IP via UDP protocol 
         (no feedback required). The image is compressed before sending it. 
 

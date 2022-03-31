@@ -157,7 +157,7 @@ class CameraStreamerProcess(WorkerProcess):
         
         #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
         #polygon = np.array([[0, 320], [0,220], [320,220], [320, 320]])
-        polygon = np.array([[0, 480], [0,400], [640,400], [640, 480]])
+        polygon = np.array([[0, 480], [0,350], [640,350], [640, 480]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
         cv2.fillConvexPoly(stencil_reg, polygon, 1)
         #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])

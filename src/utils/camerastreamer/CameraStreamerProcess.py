@@ -114,7 +114,6 @@ class CameraStreamerProcess(WorkerProcess):
         for cmd in commands:
             cmd_ =  self.rcBrain.getMessage(cmd)
             if cmd_ is not None:
-                print(cmd_)
                 encode = json.dumps(cmd_).encode()
                 decode = encode.decode()
                 command = json.loads(decode)
@@ -525,8 +524,8 @@ class CameraStreamerProcess(WorkerProcess):
 
                 '''
 
-                #self._send_command(outPs, fake_cmds)
-                self._send_command(outPs, lane_centering_cmds)
+                self._send_command(outPs, fake_cmds)
+                #self._send_command(outPs, lane_centering_cmds)
                     
                 ### else only focus on lane centering
                 #else:

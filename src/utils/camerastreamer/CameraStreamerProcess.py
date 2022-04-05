@@ -283,7 +283,8 @@ class CameraStreamerProcess(WorkerProcess):
                 # convert to grayscale
                 img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
                 # blur
-                blur_img = cv2.blur(img_crop_gray, (10,10))
+                #blur_img = cv2.blur(img_crop_gray, (10,10))
+                blur_img = cv2.GaussianBlur(img_crop_gray, (3,3), 0)
                 # get threshold
                 ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY) 
                 

@@ -286,8 +286,15 @@ class CameraStreamerProcess(WorkerProcess):
                 blur_img = cv2.blur(img_crop_gray, (10,10))
                 # get threshold
                 ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY) 
+                
+                # get edges
+                # Canny 
+                edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+                # Sobel
+                # edges = cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5)
+                
                 # get lines
-                lines = cv2.HoughLinesP(thresh, 1, np.pi/180, 25, maxLineGap=200)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
                 
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 

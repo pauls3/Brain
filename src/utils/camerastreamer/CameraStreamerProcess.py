@@ -63,7 +63,7 @@ class CameraStreamerProcess(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
-        self.HEIGHT = 480
+        self.HEIGHT = 640
         self.WIDTH = 640
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
@@ -157,7 +157,7 @@ class CameraStreamerProcess(WorkerProcess):
         
         #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
         #polygon = np.array([[0, 320], [0,220], [320,220], [320, 320]])
-        polygon = np.array([[0, 480], [0,350], [640,350], [640, 480]])
+        polygon = np.array([[0, 640], [0,450], [640,450], [640, 640]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
         cv2.fillConvexPoly(stencil_reg, polygon, 1)
         #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
@@ -420,17 +420,16 @@ class CameraStreamerProcess(WorkerProcess):
                 frame_objects = rgb_img
                 
                 # draw lines to grayscale image
-                #lane_lines_img, lane_centering_cmds = self._display_lines(thresh, lane_lines)
                 #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                #lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
+                lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
    
                 
                 #plt.imshow(lane_lines_img)
                 #plt.show()
                 
                 #out_img = cv2.resize(lane_lines_img, (640, 480))
-                out_img = cv2.resize(thresh, (640, 480))
-                cv2.imshow(winname, out_img)
+                #cv2.imshow(winname, out_img)
+                cv2.imshow(winname, lane_lines_img)
                 cv2.waitKey(1)
                 
                 

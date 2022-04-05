@@ -428,7 +428,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # draw lines to grayscale image
                 #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
+                #lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
    
                 
                 #plt.imshow(lane_lines_img)
@@ -436,7 +436,8 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 #out_img = cv2.resize(lane_lines_img, (640, 480))
                 #cv2.imshow(winname, out_img)
-                cv2.imshow(winname, lane_lines_img)
+                #cv2.imshow(winname, lane_lines_img)
+                cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 
                 

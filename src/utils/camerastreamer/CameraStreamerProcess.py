@@ -289,9 +289,9 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # get edges
                 # Canny 
-                #edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+                edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
                 # Sobel
-                edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
+                #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
                 lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)

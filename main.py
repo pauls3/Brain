@@ -42,9 +42,11 @@ from src.hardware.camera.CameraSpooferProcess               import CameraSpoofer
 from src.hardware.serialhandler.SerialHandlerProcess        import SerialHandlerProcess
 
 # utility imports
-from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
-from src.utils.remotecontrol.RemoteControlReceiverProcess   import RemoteControlReceiverProcess
-from src.utils.remotecontrol.tflite_run                     import ObjectDetector
+# from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
+from src.utils.control.RemoteControlReceiverProcess   import RemoteControlReceiverProcess
+from src.utils.control.tflite_run                     import ObjectDetector
+from src.utils.computervision.ImageProcess            import ImageProcess
+from src.utils.camerastreamer.test_steering         import CameraStreamerProcess
 
 def main():
     # =============================== CONFIG =================================================
@@ -77,6 +79,7 @@ def main():
         #streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         streamProc = CameraStreamerProcess([camStR], [rcShS])
+        #streamProc = ImageProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
         #objDetectorProc = ObjectDetector([inImg], [outDetected])

@@ -45,6 +45,10 @@ from src.utils.control.RemoteControlReceiverProcess import RemoteControlReceiver
 from src.utils.control.RcBrainThread                import RcBrainThread
 
 from gpiozero import Servo
+from gpiozero import Device
+from gpiozero.pins.pigpio import PiGPIOFactory
+
+Device.pin_factory = PiGPIOFactory('127.0.0.1')
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
@@ -66,8 +70,8 @@ class CameraStreamerProcess(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
-        self.HEIGHT = 300
-        self.WIDTH = 300
+        self.HEIGHT = 320
+        self.WIDTH = 320
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
@@ -77,6 +81,7 @@ class CameraStreamerProcess(WorkerProcess):
         
         self.controller = RemoteControlReceiverProcess()
         self.rcBrain = RcBrainThread()
+        self.servo = Servo(12)
 
         #self.inDetected, self.outImg = Pipe(duplex=False)
         
@@ -141,7 +146,8 @@ class CameraStreamerProcess(WorkerProcess):
         #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
         
         #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
-        polygon = np.array([[0, 300], [0,220], [300,220], [300, 300]])
+        polygon = np.array([[0, 320], [0,150], [320,150], [320, 320]])
+        #polygon = polygon.astype('uint8')
         #polygon = np.array([[0, 640], [0,425], [640,425], [640, 640]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
         cv2.fillConvexPoly(stencil_reg, polygon, 1)
@@ -168,7 +174,7 @@ class CameraStreamerProcess(WorkerProcess):
         
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
-        cv2.moveWindow(winname, 0,0)
+        #cv2.moveWindow(winname, 0,0)
         
         tmp_state = ""
 
@@ -181,26 +187,26 @@ class CameraStreamerProcess(WorkerProcess):
 
         fake_cmds = []
         
-        while self.FLAG:
+        while True:
             try:
-
-                
-                if tmp_state != self.CURRENT_STATE:
-                    print(self.CURRENT_STATE, obj_detect_flag)
-                    tmp_state = self.CURRENT_STATE
-                
                 
                 # get image
                 stamps, image = inP.recv()
-                #image = cv2.resize(image, (320, 320))
+                #image = cv2.resize(image, (300, 300))
                 
                 #for ii in self.inDetected:
                 #    for detected in ii.recv():
                 #        print(detected)
                 
                 
+                
+                
                 # send to object detection
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                #cv2.imshow('name', rgb_img)
+                #cv2.waitKey(1)
+                #print()
+                
                 
                 '''
                 if frameCounter == 0 and obj_detect_flag:
@@ -208,7 +214,7 @@ class CameraStreamerProcess(WorkerProcess):
                     self.outImgPs.send([rgb_img])
                 '''
                 # convert to grayscale
-                gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
                 img_crop = cv2.bitwise_and(image, image, mask=stencil)
@@ -235,19 +241,20 @@ class CameraStreamerProcess(WorkerProcess):
                 # get lane lines
                 lane_lines = self._avg_slope_intersect(lines)
                 
-                frame_objects = rgb_img
+                #frame_objects = rgb_img
                 
                 # draw lines to grayscale image
                 #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
                 lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
-                stabalized_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-
+                
+                self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
+                
    
                 
                 #plt.imshow(lane_lines_img)
                 #plt.show()
                 
-                out_img = cv2.resize(lane_lines_img, (300, 300))
+                out_img = cv2.resize(lane_lines_img, (480, 480))
                 cv2.imshow(winname, out_img)
                 #cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
@@ -263,7 +270,7 @@ class CameraStreamerProcess(WorkerProcess):
 
                 #self._send_command(outPs, fake_cmds)
                 #self._send_command(outPs, steering_angle)
-                self._change_steering(stabalized_angle)
+                self._change_steering(self.curr_steer_angle)
                 
                     
                 ### else only focus on lane centering
@@ -279,6 +286,7 @@ class CameraStreamerProcess(WorkerProcess):
 
                 #ii = ii + 1
                 #time.sleep(1)
+                
             except Exception as e:
                 print("CameraStreamer failed to stream images:",e,"\n")
                 # Reinitialize the socket for reconnecting to client.  
@@ -344,17 +352,6 @@ class CameraStreamerProcess(WorkerProcess):
         return [[x1, y1, x2, y2]]
 
 
-    def _set_delay_state(self, ):
-        print('-----delay state-----')
-        if self.CURRENT_STATE == 'found_stop_sign':
-            self.CURRENT_STATE = 'start_stopsign_proc'
-        #elif self.CURRENT_STATE == 'right_of_way':
-        #    self.CURRENT_STATE = 'right_of_way_proc'
-        #elif self.CURRENT_STATE == 'start_parking':
-        #    self.CURRENT_STATE = 'null'
-        #self.CURRENT_STATE = 'right_of_way'
-        
-
     def _display_lines(self, frame, lines):
         line_img = np.zeros((self.HEIGHT, self.WIDTH, 3))
         if lines is not None:
@@ -365,8 +362,6 @@ class CameraStreamerProcess(WorkerProcess):
                     if x1 < 0 and x2 > 200 or x1 > 200 and x2 < 0 and self.CURRENT_STATE == 'find_stop_line':
                         # drive for 4 seconds
                         self.CURRENT_STATE == 'found_stop_line'
-                        
-                        
                     else:
                         cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
         
@@ -436,40 +431,56 @@ class CameraStreamerProcess(WorkerProcess):
                 overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
                 commands = self._steering_cmd(x_offset, y_offset)
                 num_lines = 2
-        # detected one lane
+        ### detected one lane
         elif len(lines) == 1:
             #mid = 100
+            print('five')
             x1, _, x2, _ = lines[0][0]
             x_offset = int(x2 - x1)
             #print(x_offset)
-            x_offset = x_offset + mid
-            y_offset = int(self.HEIGHT * 2 / 3)
+            #x_offset = x_offset + mid
+            #y_offset = int(self.HEIGHT * 2 / 3)
+            y_offset = self.HEIGHT // 2
             num_lines = 1
+            
+            #fit = np.polyfit((x1,x2), (320, 320), 1)
+            
             # draw center line
             
+            
+            if x1 < self.WIDTH / 2 and x_offset < self.WIDTH / 2:
+                x_offset = x_offset + mid
+            if x1 > self.WIDTH / 2 and x_offset > self.WIDTH / 2:
+                offset = x_offset - mid
             
             
             #print(offset, x1, x2)
             
             #if x1 > 320 and x2 < 130:
-                
+            
+            print(x1, x2, x_offset)
             
             cv2.line(frame, (int(x_offset), int(y_offset)), (mid, self.HEIGHT), (0,255,0), 3)
             #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
             overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
             commands = self._steering_cmd(x_offset, y_offset)
+            
         # No lanes detected
         else:
             overlay_img = frame
+            x_offset = 0
+            commands = 90
         #cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
         
         #overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
+        #print(x_offset, commands)
         return overlay_img, commands, num_lines
     
 
 
 
     def stabilize_steering_angle(
+          self,
           curr_steering_angle, 
           new_steering_angle, 
           num_of_lane_lines, 
@@ -488,11 +499,12 @@ class CameraStreamerProcess(WorkerProcess):
             max_angle_deviation = max_angle_deviation_one_lane
         
         angle_deviation = new_steering_angle - curr_steering_angle
+
         if abs(angle_deviation) > max_angle_deviation:
-            stabilized_steering_angle = int(curr_steering_angle
-                + max_angle_deviation * angle_deviation / abs(angle_deviation))
+            stabilized_steering_angle = int(curr_steering_angle + max_angle_deviation * angle_deviation / abs(angle_deviation))
         else:
             stabilized_steering_angle = new_steering_angle
+        #print(new_steering_angle, stabilized_steering_angle)
         return stabilized_steering_angle
 
 
@@ -526,21 +538,23 @@ class CameraStreamerProcess(WorkerProcess):
         correct_angle = 0
 
         if angle < 90:
-            calculated_angle = -0.75 + (0.0084*angle)
+            calculated_angle = -0.75 * (angle / 90)
             if calculated_angle < -max_angle:
                 correct_angle = -max_angle
             else:
                 correct_angle = calculated_angle
         elif angle > 90:
-            calculated_angle = 0.75 + (0.0084*angle)
+            calculated_angle = 0.75 * ((angle - 90)/90)
             if calculated_angle > max_angle:
                 correct_angle = max_angle
             else:
                 correct_angle = calculated_angle
         else:
             correct_angle = 0
+            
+        #print(angle, correct_angle)
         
-        server.value = correct_angle
+        self.servo.value = correct_angle
     
     def _get_slope(self, x1, y1, x2, y2):
         x1 = float(x1)

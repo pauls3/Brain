@@ -44,6 +44,12 @@ from src.utils.control.RcBrainThread              import RcBrainThread
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
+import sys
+#np.set_printoptions(threshold=sys.maxsize)
+
+    
+def nothing(x):
+    pass
 
 class ImageProcess(WorkerProcess):
     
@@ -68,16 +74,6 @@ class ImageProcess(WorkerProcess):
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
         #self.outImgPs = outPipes[1]
-        
-        self.CURRENT_STATE = 'null'
-        self.FLAG = True
-        self.delayState = 'null'
-
-        self.CURRENT_DRIVE_STATE = "null"
-        self.PARKING = True
-        self.STOP_SIGN = True
-        self.PRIORITY = True
-        self.PEDESTRIAN = True
         
         self.rcBrain = RcBrainThread()
 
@@ -149,22 +145,38 @@ class ImageProcess(WorkerProcess):
         stencil = stencil_reg
         
         winname = 'RebelDynamics'
-        cv2.namedWindow(winname)
-        cv2.moveWindow(winname, 0,0)
+        cv2.namedWindow('image')
+        #cv2.moveWindow(image, 0,0)
         start = 0
         end = 0
 
         idx = 0
         
+        
+        cv2.createTrackbar('HMin', 'image', 0, 255, nothing)
+        cv2.createTrackbar('SMin', 'image', 0, 255, nothing)
+        cv2.createTrackbar('VMin', 'image', 0, 255, nothing)
+        cv2.createTrackbar('HMax', 'image', 0, 255, nothing)
+        cv2.createTrackbar('SMax', 'image', 0, 255, nothing)
+        cv2.createTrackbar('VMax', 'image', 0, 255, nothing)
+        
+        cv2.setTrackbarPos('HMax', 'image', 255)
+        cv2.setTrackbarPos('SMax', 'image', 255)
+        cv2.setTrackbarPos('VMax', 'image', 255)
+        
+        hMin = sMin = vMin = hMax = sMax = vMax = 0
+        phMin = psMin = pvMin = phMax = psMax = pvMax = 0
+
+        flag = True
         while True:
             try:
             
                 stamps, image = inP.recv()
-                #image = cv2.resize(image, (320, 320))
+                #image = cv2.resize(image, (300, 300))
                 
                 # send to object detection
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                
+                #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                '''
                 # convert to grayscale
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
@@ -207,8 +219,93 @@ class ImageProcess(WorkerProcess):
                 #cv2.imshow(winname, lane_lines_img)
                 cv2.imshow(winname, edges)
                 cv2.waitKey(1)
+                '''
+                '''
+                hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+                lower = np.array([104,175,53])
                 
+                lower = np.array([104,125,69])
                 
+                lower = np.array([104,101,69])
+                
+                lower = np.array([103,103,25])****
+                upper = np.array([179,255,255])
+                hsv_mask = cv2.inRange(hsv_img, lower, upper)
+                result = cv2.bitwise_and(hsv_img, hsv_img, mask=hsv_mask)
+                
+                cv2.imshow(winname, hsv_mask)
+                cv2.imshow(winname, result)
+                cv2.waitKey(1)
+                '''
+                
+                #image = cv2.resize(image, (320, 320))
+                #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                '''
+                hMin = cv2.getTrackbarPos('HMin', 'image')
+                sMin = cv2.getTrackbarPos('SMin', 'image')
+                vMin = cv2.getTrackbarPos('VMin', 'image')
+                hMax = cv2.getTrackbarPos('HMax', 'image')
+                sMax = cv2.getTrackbarPos('SMax', 'image')
+                vMax = cv2.getTrackbarPos('VMax', 'image')
+                
+                #lower = np.array([hMin, sMin, vMin])
+                #upper = np.array([hMax, sMax, vMax])
+                
+                lower = np.array([103,103,25])
+                upper = np.array([179,255,255])
+                
+                hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+                hsv_mask = cv2.inRange(hsv, lower, upper)
+                out_img = cv2.bitwise_and(image, image, mask=hsv_mask)
+                
+                if ((phMin != hMin) | (psMin != sMin) | (pvMin != vMin) | (phMax != hMax) | (psMax != sMax) | (pvMax != vMax)):
+                    print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d, sMax = %d, vMax = %d)" % (hMin, sMin, vMin, hMax, sMax, vMax))
+                    phMin = hMin
+                    psMin = sMin
+                    pvMin = vMin
+                    phMax = hMax
+                    psMax = sMax
+                    pvMax = vMax
+
+
+                cnts = cv2.findContours(hsv_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+                
+                right = 0
+                left = 0
+                
+                for c in cnts:
+                    x,y,w,h = cv2.boundingRect(c)
+                    if w >= 4 and h >= 20:
+                        cv2.rectangle(rgb_img, (x,y), (x+w, y+h), (36,255,12), 2)
+                        mid = h // 2
+                        red = yellow = 0
+                        for ii in range(0, 3):
+                            for jj in range(0, 3):
+                                cv2.rectangle(rgb_img, (x + w - ii, y + mid - jj), (x + w - ii, y + mid - jj), (0,0,255), 1)
+                                if hsv_mask[y + mid - jj, x + w - ii] == 0:
+                                    yellow = yellow + 1
+                                else:
+                                    red = red + 1
+                        if yellow > red:
+                            left = left + 1
+                        elif red > yellow:
+                            right = right + 1
+
+                if left > right:
+                    print('left\t', left)
+                elif right > left:
+                    print('right\t', right)
+                '''
+                
+                self._barricade_direction(image)
+                
+
+                #plt.imshow(hsv_mask)
+                #plt.show()
+                #cv2.imshow('image', image)
+                #cv2.waitKey(1)
+
                 #frameCounter = (frameCounter + 1) % 5
                 
                 #for outP in outPs:
@@ -220,6 +317,77 @@ class ImageProcess(WorkerProcess):
                 #self._init_socket()
                 pass
         
+        
+
+    def _barricade_direction(self, image):
+
+        '''
+            Get bbox coordinates of barricade and enlarge it for error.
+            Crop
+            Enlarge
+            Then figure out direction
+        '''
+
+        image = cv2.resize(image, (320, 320))
+        rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        lower = np.array([103,103,25])
+        upper = np.array([179,255,255])
+        
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        hsv_mask = cv2.inRange(hsv, lower, upper)
+        out_img = cv2.bitwise_and(image, image, mask=hsv_mask)
+
+        cnts = cv2.findContours(hsv_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+        
+        right = 0
+        left = 0
+        
+        flag = True
+        
+        xMax = yMax = -1
+        xMin = yMin = 9000
+        for c in cnts:
+            x,y,w,h = cv2.boundingRect(c)
+            if w >= 4 and h >= 20:
+                if xMax < x + w:
+                    xMax = x + w
+                if xMin > x:
+                    xMin = x
+                if yMax < y + h:
+                    yMax = y + h
+                if yMin > y:
+                    yMin = y
+                
+                
+                cv2.rectangle(rgb_img, (x,y), (x+w, y+h), (36,255,12), 2)
+                mid = h // 2
+                red = yellow = 0
+                for ii in range(0, 3):
+                    for jj in range(0, 3):
+                        cv2.rectangle(rgb_img, (x + w - ii, y + mid - jj), (x + w - ii, y + mid - jj), (0,0,255), 1)
+                        if hsv_mask[y + mid - jj, x + w - ii] == 0:
+                            yellow = yellow + 1
+                        else:
+                            red = red + 1
+                if yellow > red:
+                    left = left + 1
+                elif red > yellow:
+                    right = right + 1
+        
+        if max(left, right) > 1 and (xMax > -1 and yMax > -1 and xMin < 9000 and yMin < 9000):
+            print(yMin, yMax, xMin, xMax)
+            cropped_img = rgb_img[yMin:yMax, xMin:xMax]
+        else:
+            cropped_img = rgb_img
+
+        if left > right:
+            print('left\t', left)
+        elif right > left:
+            print('right\t', right)
+            
+        cv2.imshow('image', cropped_img)
+        cv2.waitKey(1)
 
 
     def _avg_slope_intersect(self, lines):
@@ -277,16 +445,6 @@ class ImageProcess(WorkerProcess):
         
         return [[x1, y1, x2, y2]]
 
-
-    def _set_delay_state(self, ):
-        print('-----delay state-----')
-        if self.CURRENT_STATE == 'found_stop_sign':
-            self.CURRENT_STATE = 'start_stopsign_proc'
-        #elif self.CURRENT_STATE == 'right_of_way':
-        #    self.CURRENT_STATE = 'right_of_way_proc'
-        #elif self.CURRENT_STATE == 'start_parking':
-        #    self.CURRENT_STATE = 'null'
-        #self.CURRENT_STATE = 'right_of_way'
         
 
     def _display_lines(self, frame, lines):

@@ -153,6 +153,9 @@ class ImageProcess(WorkerProcess):
         idx = 0
         
         
+        #cv2.createTrackbar('Theta', 'image', 1, 360, nothing)
+        
+        '''
         cv2.createTrackbar('HMin', 'image', 0, 255, nothing)
         cv2.createTrackbar('SMin', 'image', 0, 255, nothing)
         cv2.createTrackbar('VMin', 'image', 0, 255, nothing)
@@ -166,44 +169,68 @@ class ImageProcess(WorkerProcess):
         
         hMin = sMin = vMin = hMax = sMax = vMax = 0
         phMin = psMin = pvMin = phMax = psMax = pvMax = 0
+        '''
+        
+        theta = 1
+        pTheta = 0
 
         flag = True
         while True:
             try:
             
                 stamps, image = inP.recv()
+                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 #image = cv2.resize(image, (300, 300))
                 
                 # send to object detection
                 #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                '''
+                
                 # convert to grayscale
                 gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-                img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                #img_crop = cv2.bitwise_and(image, image, mask=stencil)
                 # convert to grayscale
-                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                #img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
                 # blur
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
-                blur_img = cv2.GaussianBlur(img_crop_gray, (3,3), 0)
+                blur_img = cv2.GaussianBlur(gray_img, (3,3), 0)
                 # get threshold
                 ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY) 
                 
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+                
+                
                 # Sobel
                 #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                
+                '''
+                    Straight: Looking for any lines that are ~vertical in RoI
+                    Right: Looking for any lines that are ~horizontal in RoI
+                    Left: Looking for any lines that are ~horizontal in RoI
+                '''
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=100, minLineLength=25)
+                
+                
+                
+                #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 15, maxLineGap=10, minLineLength=180)
+                #lines = cv2.HoughLinesP(edges, 1, np.pi/5, 15, maxLineGap=200)
+                
+                if lines is not None:
+                    for jj in range(0, len(lines)):
+                        ll = lines[jj][0]
+                        cv2.line(image, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
                 
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                 
                 # get lane lines
-                lane_lines = self._avg_slope_intersect(lines)
+                #lane_lines = self._avg_slope_intersect(lines)
                 
                 
                 # draw lines to grayscale image
@@ -217,9 +244,10 @@ class ImageProcess(WorkerProcess):
                 #out_img = cv2.resize(lane_lines_img, (640, 480))
                 #cv2.imshow(winname, out_img)
                 #cv2.imshow(winname, lane_lines_img)
-                cv2.imshow(winname, edges)
-                cv2.waitKey(1)
-                '''
+                #cv2.imshow(winname, edges)
+                #cv2.waitKey(1)
+                
+                
                 '''
                 hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
                 lower = np.array([104,175,53])
@@ -247,17 +275,17 @@ class ImageProcess(WorkerProcess):
                 hMax = cv2.getTrackbarPos('HMax', 'image')
                 sMax = cv2.getTrackbarPos('SMax', 'image')
                 vMax = cv2.getTrackbarPos('VMax', 'image')
-                
+                '''
                 #lower = np.array([hMin, sMin, vMin])
                 #upper = np.array([hMax, sMax, vMax])
                 
-                lower = np.array([103,103,25])
-                upper = np.array([179,255,255])
+                #lower = np.array([103,103,25])
+                #upper = np.array([179,255,255])
                 
-                hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-                hsv_mask = cv2.inRange(hsv, lower, upper)
-                out_img = cv2.bitwise_and(image, image, mask=hsv_mask)
-                
+                #hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+                #hsv_mask = cv2.inRange(hsv, lower, upper)
+                #out_img = cv2.bitwise_and(image, image, mask=hsv_mask)
+                '''
                 if ((phMin != hMin) | (psMin != sMin) | (pvMin != vMin) | (phMax != hMax) | (psMax != sMax) | (pvMax != vMax)):
                     print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d, sMax = %d, vMax = %d)" % (hMin, sMin, vMin, hMax, sMax, vMax))
                     phMin = hMin
@@ -266,8 +294,9 @@ class ImageProcess(WorkerProcess):
                     phMax = hMax
                     psMax = sMax
                     pvMax = vMax
+                '''
 
-
+                '''
                 cnts = cv2.findContours(hsv_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 cnts = cnts[0] if len(cnts) == 2 else cnts[1]
                 
@@ -298,13 +327,21 @@ class ImageProcess(WorkerProcess):
                     print('right\t', right)
                 '''
                 
-                self._barricade_direction(image)
+                #self._barricade_direction(image)
+                
+                #gaborFilter = self._gabor_filter()
+                #image_filtered = self._apply_filter(image, gaborFilter)
+                
+                #vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,50))
+                #vertical_mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=20)
+                
+                #image[np.where(vertical_mask==255)] = [255,255,255]
                 
 
                 #plt.imshow(hsv_mask)
                 #plt.show()
-                #cv2.imshow('image', image)
-                #cv2.waitKey(1)
+                cv2.imshow('image', image)
+                cv2.waitKey(1)
 
                 #frameCounter = (frameCounter + 1) % 5
                 
@@ -318,6 +355,29 @@ class ImageProcess(WorkerProcess):
                 pass
         
         
+    def _gabor_filter(self):
+        filters = []
+        num_filters = 16
+        ksize = 35
+        sigma = 3.0
+        lambd = 10.0
+        gamma = 0.5
+        psi = 0
+        for theta in np.arange(0, np.pi, np.pi / num_filters):
+            kernal = cv2.getGaborKernel((ksize, ksize), sigma, theta, lambd, gamma, psi, ktype=cv2.CV_64F)
+            kernal /= 1.0 * kernal.sum()
+            filters.append(kernal)
+        return filters
+    
+    
+    def _apply_filter(self, img, filters):
+        newImg = np.zeros_like(img)
+        depth = -1
+        for kern in filters:
+            image_filter = cv2.filter2D(img, depth, kern)
+            np.maximum(newImg, image_filter, newImg)
+        return newImg
+
 
     def _barricade_direction(self, image):
 
@@ -386,7 +446,7 @@ class ImageProcess(WorkerProcess):
         elif right > left:
             print('right\t', right)
             
-        cv2.imshow('image', cropped_img)
+        cv2.imshow('image', rgb_img)
         cv2.waitKey(1)
 
 

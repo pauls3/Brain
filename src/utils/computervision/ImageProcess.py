@@ -68,8 +68,8 @@ class ImageProcess(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(ImageProcess,self).__init__(inPipes, outPipes)
-        self.HEIGHT = 300
-        self.WIDTH = 300
+        self.HEIGHT = 640
+        self.WIDTH = 640
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
@@ -122,7 +122,10 @@ class ImageProcess(WorkerProcess):
         
         #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
         #polygon = np.array([[0, 320], [0,220], [320,220], [320, 320]])
-        polygon = np.array([[0, 300], [0,220], [300,220], [300, 300]])
+        # *********************
+        #polygon = np.array([[0, 300], [0,220], [300,220], [300, 300]])
+        polygon = np.array([[0, 640], [0,300], [640,300], [640, 640]])
+        
         #polygon = np.array([[0, 640], [0,425], [640,425], [640, 640]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
         cv2.fillConvexPoly(stencil_reg, polygon, 1)
@@ -174,19 +177,24 @@ class ImageProcess(WorkerProcess):
         theta = 1
         pTheta = 0
 
+        iii = 0
         flag = True
-        while True:
+        while flag:
             try:
-            
+                
                 stamps, image = inP.recv()
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                cv2.imwrite('/home/pi/Desktop/images/rgb.png', rgb_img)
                 #image = cv2.resize(image, (300, 300))
                 
                 # send to object detection
                 #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 
+                img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                
                 # convert to grayscale
-                gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                gray_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                cv2.imwrite('/home/pi/Desktop/images/gray.png', gray_img)
                 # crop with mask
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
                 #img_crop = cv2.bitwise_and(image, image, mask=stencil)
@@ -194,13 +202,16 @@ class ImageProcess(WorkerProcess):
                 #img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
                 # blur
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
-                blur_img = cv2.GaussianBlur(gray_img, (3,3), 0)
+                blur_img = cv2.GaussianBlur(gray_img, (5,5), 0)
+                cv2.imwrite('/home/pi/Desktop/images/blur.png', blur_img)
                 # get threshold
-                ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY) 
+                ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
+                cv2.imwrite('/home/pi/Desktop/images/threshold.png', thresh)
                 
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+                cv2.imwrite('/home/pi/Desktop/images/edges.png', edges)
                 
                 
                 # Sobel
@@ -224,7 +235,9 @@ class ImageProcess(WorkerProcess):
                 if lines is not None:
                     for jj in range(0, len(lines)):
                         ll = lines[jj][0]
-                        cv2.line(image, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
+                        cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
+                cv2.imwrite('/home/pi/Desktop/images/lines.png', rgb_img)  
+        
                 
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
@@ -327,7 +340,7 @@ class ImageProcess(WorkerProcess):
                     print('right\t', right)
                 '''
                 
-                #self._barricade_direction(image)
+                self._barricade_direction(image)
                 
                 #gaborFilter = self._gabor_filter()
                 #image_filtered = self._apply_filter(image, gaborFilter)
@@ -340,13 +353,15 @@ class ImageProcess(WorkerProcess):
 
                 #plt.imshow(hsv_mask)
                 #plt.show()
-                cv2.imshow('image', image)
-                cv2.waitKey(1)
+                #cv2.imshow('image', rgb_img)
+                #cv2.waitKey(0)
 
                 #frameCounter = (frameCounter + 1) % 5
                 
                 #for outP in outPs:
-                
+                iii = iii + 1
+                #if iii > 10:
+                #    flag = False
             except Exception as e:
                 print("CameraStreamer failed to stream images:",e,"\n")
                 # Reinitialize the socket for reconnecting to client.  
@@ -366,6 +381,7 @@ class ImageProcess(WorkerProcess):
         for theta in np.arange(0, np.pi, np.pi / num_filters):
             kernal = cv2.getGaborKernel((ksize, ksize), sigma, theta, lambd, gamma, psi, ktype=cv2.CV_64F)
             kernal /= 1.0 * kernal.sum()
+            image = cv2.resize(image, (320, 320))
             filters.append(kernal)
         return filters
     

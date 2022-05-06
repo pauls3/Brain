@@ -126,7 +126,7 @@ class CameraThread(ThreadWithStop):
 
             # read and reshape from bytes to np.array
             data  = np.frombuffer(data, dtype=np.uint8)
-            #data  = np.reshape(data, (304, 304, 3))
+            data  = np.reshape(data, (304, 304, 3))
             stamp = time.time()
 
             # output image and time stamp

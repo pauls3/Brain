@@ -62,8 +62,8 @@ class CameraStreamerProcess(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
-        self.HEIGHT = 640
-        self.WIDTH = 640
+        self.HEIGHT = 300
+        self.WIDTH = 300
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
@@ -114,8 +114,11 @@ class CameraStreamerProcess(WorkerProcess):
         #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
         #polygon = np.array([[0, 320], [0,150], [320,150], [320, 320]])
         #polygon = np.array([[0, 640], [0,300], [640,300], [640, 640]])
-        polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
-        polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
+
+        # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
+        # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
+        polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
+        polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
         cv2.fillPoly(stencil_reg, [polygon1, polygon2], 1)
         #polygon = polygon.astype('uint8')
         #polygon = np.array([[0, 640], [0,425], [640,425], [640, 640]])
@@ -145,8 +148,10 @@ class CameraStreamerProcess(WorkerProcess):
                 # get image
                 stamps, image = inP.recv()
                 
+                image = cv2.resize(lane_lines_img, (300, 300))
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                
 
                 # convert to grayscale
                 #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -196,7 +201,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #plt.imshow(lane_lines_img)
                 #plt.show()
                 #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
-                out_img = cv2.resize(lane_lines_img, (640, 640))
+                #out_img = cv2.resize(lane_lines_img, (640, 640))
                 #cv2.imshow(winname, out_img)
                 
                 for outP in self.outImgPs:

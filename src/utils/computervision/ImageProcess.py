@@ -68,8 +68,8 @@ class ImageProcess(WorkerProcess):
             List of output pipes (not used at the moment)
         """
         super(ImageProcess,self).__init__(inPipes, outPipes)
-        self.HEIGHT = 640
-        self.WIDTH = 640
+        self.HEIGHT = 300
+        self.WIDTH = 300
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]

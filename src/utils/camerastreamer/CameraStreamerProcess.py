@@ -186,7 +186,7 @@ class CameraStreamerProcess(WorkerProcess):
                 # draw lines to grayscale image
                 #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
                 #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
-                lane_lines_img, steering_angle, num_lines = self._display_lines(rgb_img, lane_lines)
+                lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
                 
@@ -199,7 +199,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #cv2.imshow(winname, out_img)
                 
                 for outP in self.outImgPs:
-                    outP.send(lane_lines_img)
+                    outP.send(lane_lines_img, self.curr_steer_angle, stopLine)
                 
                 #cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
@@ -245,9 +245,8 @@ class CameraStreamerProcess(WorkerProcess):
                     
                     if x1 < left_region_boundary and x2 < left_region_boundary and abs(angle) % 90 > 30.0:
                         left_fit.append((slope, intercept))
-                    else:
-                        if x1 > right_region_boundary and x2 > right_region_boundary and abs(angle) % 90 > 30.0:
-                            right_fit.append((slope, intercept))
+                    elif x1 > right_region_boundary and x2 > right_region_boundary and abs(angle) % 90 > 30.0:
+                        right_fit.append((slope, intercept))
                             
         left_fit_average = np.average(left_fit, axis=0)
         if len(left_fit) > 0:
@@ -277,14 +276,18 @@ class CameraStreamerProcess(WorkerProcess):
 
     def _display_lines(self, frame, lines):
         line_img = np.zeros((self.HEIGHT, self.WIDTH, 3))
+        stopLine = False
         if lines is not None:
             for line in lines:
                 for x1, y1, x2, y2 in line:
-                    cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
+                    #cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
                     
-                    if x1 < 0 and x2 > 200 or x1 > 200 and x2 < 0 and self.CURRENT_STATE == 'find_stop_line':
+                    # Checking if stop line is found...
+                    if x1 < 0 and x2 > 300 or x1 > 300 and x2 < 0:
                         # drive for 4 seconds
-                        self.CURRENT_STATE == 'found_stop_line'
+                        #self.CURRENT_STATE == 'found_stop_line'
+                        stopLine = True
+                        cv2.line(line_img, (x1, y1), (x2, y2), (255,255,0), 2)
                     else:
                         cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
         
@@ -292,14 +295,13 @@ class CameraStreamerProcess(WorkerProcess):
         line_img = line_img.astype('uint8')
         num_lines = 0
         
-        commands = []
+        commands = 90
         ##################
         # draw center line
         ##################
         # Detected 2 lanes
         #print(lines)
         
-        #mid = 100
         mid = int(self.WIDTH / 2)
         y_offset = int(self.HEIGHT / 2)
         if len(lines) == 2:
@@ -399,7 +401,7 @@ class CameraStreamerProcess(WorkerProcess):
         
         #overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
         #print(x_offset, commands)
-        return overlay_img, commands, num_lines
+        return overlay_img, commands, num_lines, stopLine
     
 
 

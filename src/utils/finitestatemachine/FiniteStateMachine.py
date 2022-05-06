@@ -11,13 +11,24 @@ class FiniteStateMachine:
         self.steeringAngle = 0.0
         self.stopLineLocation = 0
         self.detectedObjects = []
-        self.previousState = 'null'
+        self.previousState = 'lane_centering'
         self.currentState = 'lane_centering'
 
 
 
+    def get_state(self):
+        return self.currentState
+
+    def change_state(self, newState):
+        print(newState)
+        self._update_state(newState)
+    
+    def _change_state(self, newState):
+        self.previousState = self.currentState
+        self.currentState = newState
+
     # ===================================== STATE DICT ===================================
-    def _stateDict(self):
+    def _update_state(self, newState):
         """It generates a dictionary with the robot current states. 
         
         Returns
@@ -28,8 +39,10 @@ class FiniteStateMachine:
         # Set steering angle
         if self.currentState == 'lane_centering':
             '''
-                set steering angle
+                change to: at_intersection, parking, pedestrian, highway entrance/exit, roundabout
             '''
+            if newState == 'at_intersection':
+                self._change_state(self, newState)
         # Speed car up
         elif self.currentState == 'speed_up':
             '''
@@ -103,7 +116,7 @@ class FiniteStateMachine:
                 if parallel parking available:
                     enter parallel_parking
             '''
-        # parking state (paralle parking)
+        # parking state (parallel parking)
         elif self.currentState == 'parallel_parking':
             '''
                 look for open spot
@@ -134,22 +147,13 @@ class FiniteStateMachine:
         # priority sign
         elif self.currentState == 'priority':
             '''
-                slow down
-                approach intersection
-                enter intersection_approach_priority
-            '''
-        # intersection (priority)
-        elif self.currentState == 'intersection_approach_priority':
-            '''
-               stop
                enter check_intersection_priority
             '''
         # stop sign
         elif self.currentState == 'stop_sign':
             '''
-                slow down
-                approach intersection
-                enter intersection_approach_stop
+                stop for 3 seconds minimum (longer to check intersection)
+                enter check_intersection_stop
             '''
         # traffic light
         elif self.currentState == 'traffic_light_stop':
@@ -175,13 +179,6 @@ class FiniteStateMachine:
             '''
                 focus camera on traffic light (right side)
                 go on green (straigten camera)
-            '''
-        # intersection (stop sign)
-        elif self.currentState == 'intersection_approach_stop':
-            '''
-                get close to stop line
-                stop for 3 seconds minimum (longer to check intersection)
-                enter check_intersection_stop
             '''
         # Check intersection for no entry sign or if car can't make a turn (3-way intersection)
         elif self.currentState == 'check_intersection_stop':
@@ -218,11 +215,12 @@ class FiniteStateMachine:
                 ***ONLY TURN LEFT OR RIGHT, based on the lane car is in.
                 enter lane_centering
             '''
-        # Intersection approach (NO SIGN)
-        elif self.currentState == 'intersection_no_sign':
+        # At intersection
+        elif self.currentState == 'at_intersection':
             '''
                 slow down and stop at stop line
-                enter intersection_right_way
+                enter ???
+                need to look for signs
             '''
         # intersection (no sign)
         elif self.currentState == '':

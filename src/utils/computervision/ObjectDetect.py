@@ -167,10 +167,11 @@ class ObjectDetection(WorkerProcess):
 
                 
             except Exception as e:
-                print("CameraStreamer failed to stream images:",e,"\n")
-                # Reinitialize the socket for reconnecting to client.  
-                #self.connection = None
-                #self._init_socket()
+                print("Failure in object detection:",e,"\n")
+                # Reinitialize the model  
+                net = cv2.dnn.readNet(xml_path, bin_path)
+                # Specify target device
+                net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
                 pass
         
         

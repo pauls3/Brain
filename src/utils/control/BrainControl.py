@@ -169,6 +169,8 @@ class BrainControl(WorkerProcess):
         
         tmp_state = ""
 
+        time.sleep(10)
+
         print('**************************')
         print('Starting PID')
         print('**************************')
@@ -181,6 +183,7 @@ class BrainControl(WorkerProcess):
         timer2 = 0
         t2secs = 0
         fps = 0
+        
         
         while True:
             try:

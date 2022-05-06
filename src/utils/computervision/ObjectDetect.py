@@ -105,6 +105,8 @@ class ObjectDetection(WorkerProcess):
         inP : Pipe
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """
+
+        time.sleep(10)
         inputQueue = Queue(maxsize = 1)
         outputQueue = Queue(maxsize = 1)
         confThreshold = 0.5

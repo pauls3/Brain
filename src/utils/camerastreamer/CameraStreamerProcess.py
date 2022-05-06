@@ -143,6 +143,8 @@ class CameraStreamerProcess(WorkerProcess):
         #cv2.moveWindow(winname, 0,0)
         
 
+        time.sleep(10)
+
         while True:
             try:
                 # get image

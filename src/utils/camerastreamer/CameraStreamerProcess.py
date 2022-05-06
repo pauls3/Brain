@@ -148,8 +148,10 @@ class CameraStreamerProcess(WorkerProcess):
         while True:
             try:
                 # get image
+                print('get image')
                 stamps, image = inP.recv()
                 
+                print('reszie image')
                 image = cv2.resize(image, (300, 300))
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

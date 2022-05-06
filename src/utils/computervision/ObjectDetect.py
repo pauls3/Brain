@@ -110,6 +110,7 @@ class ObjectDetection(WorkerProcess):
         confThreshold = 0.5
 
         # Load the model
+        print('Loading model')
         xml_path = '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.xml'
         bin_path = '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.bin'
         labels_file = '/home/pi/repos/Brain/src/utils/openvino/labels.txt'
@@ -117,6 +118,8 @@ class ObjectDetection(WorkerProcess):
 
         # Specify target device
         net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+
+        print('Loaded model!')
 
         with open(labels_file, 'r') as f:
             labels = [x.strip() for x in f]

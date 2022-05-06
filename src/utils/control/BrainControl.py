@@ -108,7 +108,7 @@ class BrainControl(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='BrainControlThread', target=self._generate_command, args=(self.inPVision, self.inPDetections, self.inPStopLine, self.outPs, ))
+        streamTh = Thread(name='BrainControlThread', target=self._generate_command, args=(self.inPVision, self.inPDetections, self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
         
@@ -134,7 +134,7 @@ class BrainControl(WorkerProcess):
     
     
     # ===================================== SEND THREAD ==================================
-    def _generate_command(self, inPVision, inPDetections, inPStopline, outPs):
+    def _generate_command(self, inPVision, inPDetections, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -185,13 +185,15 @@ class BrainControl(WorkerProcess):
         fps = 0
         
         
+        print()
+
         while True:
             try:
                 #timer2 = time.time()
                 # get image
-                image, steer_angle, stopLine = inPVision.recv()   
+                image, steer_angle, foundStopLine = inPVision.recv()   
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                foundStopLine = inPStopline.recv()
+                #foundStopLine = inPStopline.recv()
                 
                 '''
                 if frameCounter == 0 and obj_detect_flag:

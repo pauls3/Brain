@@ -41,11 +41,19 @@ import cv2
 import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
+from src.utils.control.RemoteControlReceiverProcess import RemoteControlReceiverProcess
+from src.utils.control.RcBrainThread                import RcBrainThread
+
+from gpiozero import Servo
+from gpiozero import Device
+from gpiozero.pins.pigpio import PiGPIOFactory
+
+Device.pin_factory = PiGPIOFactory('127.0.0.1')
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
 
-class CameraStreamerProcess(WorkerProcess):
+class BrainControl(WorkerProcess):
     
     # ===================================== INIT =========================================
     def __init__(self, inPipes, outPipes):
@@ -67,9 +75,17 @@ class CameraStreamerProcess(WorkerProcess):
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
-        self.outImgPs = outPipes[1]
+        #self.outImgPs = outPipes[1]
+
+        self.curr_steer_angle = 90
         
+        self.controller = RemoteControlReceiverProcess()
+        self.rcBrain = RcBrainThread()
+        self.servo = Servo(12)
+
+        #self.inDetected, self.outImg = Pipe(duplex=False)
         
+        #self.listener = ObjectDetector([self.inDetected], [self.outImg])
     # ===================================== RUN ==========================================
     def run(self):
         """Apply the initializing methods and start the threads.
@@ -92,6 +108,25 @@ class CameraStreamerProcess(WorkerProcess):
         self.threads.append(streamTh)
         
 
+    # ===================================== SEND COMMANDS =================================
+    def _send_command(self, outPs, commands):
+        #print(command)
+        for cmd in commands:
+            cmd_ =  self.rcBrain.getMessage(cmd)
+            if cmd_ is not None:
+                encode = json.dumps(cmd_).encode()
+                decode = encode.decode()
+                command = json.loads(decode)
+                #for outP in outPs:
+                for ii in range(0,1):
+                    outPs.send(command)
+            # translated_cmd = self.controller.get_commands(cmd)
+            # print (translated_cmd)
+            # if translated_cmd is not None:
+            #     for ii in range(0,7):
+            #         #for outP in outPs:
+            #         outPs.send(cmd)
+    
     
     # ===================================== SEND THREAD ==================================
     def _process_image(self, inP, outPs):
@@ -128,9 +163,16 @@ class CameraStreamerProcess(WorkerProcess):
         #cv2.fillPoly(stencilX, [poly1, poly2], 1)
         #ii = 0
         
-                
+        #parking_t = Timer(30, self._set_delay_state)
+        
+        # Testing parallel parking
+        self.PARKING = False
+        
+        frameCounter = 0
         YMAX = 0
-            
+        
+                
+        obj_detect_flag = True
                 
         stencil = stencil_reg
         
@@ -138,15 +180,52 @@ class CameraStreamerProcess(WorkerProcess):
         cv2.namedWindow(winname)
         #cv2.moveWindow(winname, 0,0)
         
+        tmp_state = ""
 
-        while True:
+        print('**************************')
+        print('Starting PID')
+        print('**************************')
+        cmds = ['pid', 'stop','straight']
+        self._send_command(outPs, cmds)
+        time.sleep(5)
+
+        fake_cmds = []
+        
+        timer1 = time.time()
+        frames = 0
+        timer2 = 0
+        t2secs = 0
+        fps = 0
+        
+        iii = 0
+        flag = True
+        while flag:
             try:
+                timer2 = time.time()
                 # get image
                 stamps, image = inP.recv()
+                #image = cv2.resize(image, (300, 300))
+                
+                #for ii in self.inDetected:
+                #    for detected in ii.recv():
+                #        print(detected)
+                
+                
+                
                 
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
+                cv2.imwrite('/home/pi/Desktop/images/rgb.png', rgb_img)
+                #cv2.imshow('name', rgb_img)
+                #cv2.waitKey(1)
+                #print()
+                
+                
+                '''
+                if frameCounter == 0 and obj_detect_flag:
+                #for out_frames in outImg:
+                    self.outImgPs.send([rgb_img])
+                '''
                 # convert to grayscale
                 #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
@@ -198,17 +277,46 @@ class CameraStreamerProcess(WorkerProcess):
                 out_img = cv2.resize(lane_lines_img, (640, 640))
                 #cv2.imshow(winname, out_img)
                 
-                for outP in self.outImgPs:
-                    outP.send(lane_lines_img)
-                
-                #cv2.imshow(winname, lane_lines_img)
+                cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
-                #cv2.waitKey(1)
+                cv2.waitKey(1)
                 
                 
+                #frameCounter = (frameCounter + 1) % 5
+                
+                #for outP in outPs:
+                # check if parking mode
+                
+            
 
-
+                #self._send_command(outPs, fake_cmds)
+                #self._send_command(outPs, steering_angle)
+                
                 #self._change_steering(self.curr_steer_angle)
+                
+                    
+                ### else only focus on lane centering
+                #else:
+                #    outPs.send(lane_centering_cmds)
+                
+                
+                
+                #if stop_flag:
+                    #print('testing stop sign')
+                #    outPs.send(['stop_sign'])
+                    #stop_flag = False
+
+                #ii = ii + 1
+                #time.sleep(1)
+                
+                frames = frames + 1
+                end1 = time.time()
+                t1secs = end1-timer1
+                fps = round(frames/t1secs,2)
+                
+                iii = iii + 1
+                if iii > 10:
+                    flag = False
                 
             except Exception as e:
                 print("CameraStreamer failed to stream images:",e,"\n")

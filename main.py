@@ -44,9 +44,11 @@ from src.hardware.serialhandler.SerialHandlerProcess        import SerialHandler
 # utility imports
 # from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
 from src.utils.control.RemoteControlReceiverProcess   import RemoteControlReceiverProcess
-from src.utils.control.tflite_run                     import ObjectDetector
+#from src.utils.control.tflite_run                     import ObjectDetector
+from src.utils.computervision.ObjectDetect            import ObjectDetection
 from src.utils.computervision.ImageProcess            import ImageProcess
-from src.utils.camerastreamer.test_steering         import CameraStreamerProcess
+from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
+from src.utils.control.BrainControl                   import BrainControl
 
 def main():
     # =============================== CONFIG =================================================
@@ -59,11 +61,11 @@ def main():
     # =============================== INITIALIZING PROCESSES =================================
     allProcesses = list()
 
-    #inCmd, outCmd   = Pipe(duplex = False)
+    inCmd, outCmd   = Pipe(duplex = False)
     rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
     
-    #inImg, outImg = Pipe(duplex = False)
-    #inDetected, outDetected = Pipe(duplex = False)
+    inImg, outImg = Pipe(duplex = False)
+    inDetected, outDetected = Pipe(duplex = False)
     # =============================== HARDWARE ===============================================
     if enableStream:
         camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
@@ -76,14 +78,15 @@ def main():
             camProc = CameraProcess([],[camStS])
             allProcesses.append(camProc)
 
-        #streamProc = CameraStreamerProcess([camStR, inDetected], [outCmd, outImg])
+        streamProc = CameraStreamerProcess([camStR], [outCmd, outImg])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
-        streamProc = CameraStreamerProcess([camStR], [rcShS])
+        #streamProc = CameraStreamerProcess([camStR], [rcShS])
         #streamProc = ImageProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
         #objDetectorProc = ObjectDetector([inImg], [outDetected])
-        #allProcesses.append(objDetectorProc)
+        objDetectorProc = ObjectDetection([camStR], [outDetected])
+        allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================
     #LocSys client process
@@ -104,6 +107,8 @@ def main():
     #rcProc = RemoteControlReceiverProcess([inCmd],[rcShS])
     #rcProc = RemoteControlReceiverProcess([],[rcShS])
     #allProcesses.append(rcProc)
+    
+    brainProc = BrainControl([inImg, inDetected], [rcShS])
 
 
     # ===================================== START PROCESSES ==================================

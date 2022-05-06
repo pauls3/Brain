@@ -109,7 +109,7 @@ def main():
     #allProcesses.append(rcProc)
     
     brainProc = BrainControl([inImg, inDetected], [rcShS])
-
+    allProcesses.append(brainProc)
 
     # ===================================== START PROCESSES ==================================
     print("Starting the processes!",allProcesses)

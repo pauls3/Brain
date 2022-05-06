@@ -150,7 +150,7 @@ class CameraStreamerProcess(WorkerProcess):
                 # get image
                 stamps, image = inP.recv()
                 
-                image = cv2.resize(lane_lines_img, (300, 300))
+                image = cv2.resize(image, (300, 300))
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 

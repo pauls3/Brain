@@ -78,7 +78,10 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.startSpeed         =   12.0
+        self.normalSpeed        =   10.0
+        self.slowSpeed          =   8.5
+        self.fastSpeed          =   13.0
+
         self.startSteerAngle    =   10.0
 
         #----------------- DEFAULT VALUES ----------------------
@@ -92,7 +95,7 @@ class RcBrainThread:
         self.configParam = copy.deepcopy(self.default_configParam)  
 
         #----------------- DIRECTION SIGNALS STATES -----------
-        self.currentState =[False,False,False,False,False, False, False, False, False]   #UP, DOWN , LEFT, RIGHT, BRAKE, PIDActive, PIDSvalues, SteerRelease, PARK
+        self.currentState =[False,False,False,False,False, False, False]   #UP, DOWN , LEFT, RIGHT, BRAKE, PIDActive, PIDSvalues, SteerRelease, PARK
 
     # ===================================== DISPLAY INFO =================================
     def displayInfo(self):
@@ -133,17 +136,21 @@ class RcBrainThread:
             self.currentState[4] = False
             #data['steerAngle']    =  float(self.steerAngle)
         # SPEED command
-        elif self.currentState[0] or self.currentState[1]:
+        elif self.currentState[0] or self.currentState[1] or self.currentState[2] or self.currentState[2]:
             data['action']        =  '1'
             data['speed']         =  float(self.speed/100.0)
             self.currentState[0] = False
             self.currentState[1] = False
-        # STEERING command
-        elif self.currentState[2] or self.currentState[3]:
-            data['action']        =  '2'
-            data['steerAngle']    =  float(self.steerAngle)
             self.currentState[2] = False
             self.currentState[3] = False
+        # STEERING command
+            '''
+            elif self.currentState[2] or self.currentState[3]:
+                data['action']        =  '2'
+                data['steerAngle']    =  float(self.steerAngle)
+                self.currentState[2] = False
+                self.currentState[3] = False
+            '''
         # PID activation command
         elif self.currentState[5]:
             data['action']        =  '4'
@@ -158,13 +165,15 @@ class RcBrainThread:
             data['tf']      =  self.pids_tf
             self.currentState[6]  = False
         # Steering command (release)
-        elif self.currentState[7]:
-            data['action']        =  '2'
-            data['steerAngle']    =  0.0
-            self.currentState[7] = False
-        elif self.currentState[8]:
-            data['speed']         =  float(self.speed/100.0)
-            self.currentState[8]  = False
+            '''
+            elif self.currentState[7]:
+                data['action']        =  '2'
+                data['steerAngle']    =  0.0
+                self.currentState[7] = False
+            elif self.currentState[8]:
+                data['speed']         =  float(self.speed/100.0)
+                self.currentState[8]  = False
+            '''
         else:
             return None
             
@@ -187,7 +196,7 @@ class RcBrainThread:
         self._updateMotionState(data)
 
         self._updateSpeed()
-        self._updateSteerAngle()
+        #self._updateSteerAngle()
         self._updatePID(data)
         self._updateParameters(data)
         #self.displayInfo()
@@ -206,20 +215,19 @@ class RcBrainThread:
         if self.currentState[4]:
             self.currentState[0] = False
             self.currentState[1] = False
+            self.currentState[2] = False
+            self.currentState[3] = False
             self.speed = 0
             return
-        if self.currentState[8]:
-            #self.speed = 9.0
-            self.startSpeed = 9.0
-            self.currentState[8] = False
-            return
 
-        #forward
+        #forward normal
         if self.currentState[0]:
-            if self.speed == 0:
-                self.speed = self.startSpeed
+            if self.speed != self.normalSpeed:
+                self.speed = self.normalSpeed
             else:
-                self.currentState[0] = False
+               self.currentState[0] = False
+            #else:
+            #    self.currentState[0] = False
             # elif self.speed == -self.startSpeed:
             #     self.speed = 0
             # elif self.speed < self.configParam.maxSpeed:
@@ -228,14 +236,34 @@ class RcBrainThread:
             #     else:
             #         self.speed += self.configParam.speedStep
             #self.currentState[0] = False
-        #backwards
-        elif self.currentState[1]:
-            if self.speed == 0:
-                self.speed = - self.startSpeed
-            elif self.speed == self.startSpeed:
-                self.speed = 0
+        
+        #forward fast
+        if self.currentState[1]:
+            if self.speed != self.fastSpeed:
+                self.speed = self.fastSpeed
             else:
-                self.currentState[1] = False
+               self.currentState[1] = False
+        #forward slow
+        if self.currentState[2]:
+            if self.speed != self.slowSpeed:
+                self.speed = self.slowSpeed
+            else:
+               self.currentState[2] = False
+        # reverse
+        if self.currentState[3]:
+            if self.speed != -self.slowSpeed:
+                self.speed = -self.slowSpeed
+            else:
+               self.currentState[3] = False
+
+        # #backwards
+        # elif self.currentState[1]:
+        #     if self.speed == 0:
+        #         self.speed = - self.startSpeed
+        #     elif self.speed == self.startSpeed:
+        #         self.speed = 0
+        #     else:
+        #         self.currentState[1] = False
             # elif self.speed >  -self.configParam.maxSpeed:
             #     if  abs(self.configParam.maxSpeed + self.speed) < self.configParam.speedStep:
             #         self.speed = - self.configParam.maxSpeed
@@ -378,29 +406,16 @@ class RcBrainThread:
         currentKey : string 
             Encoded keyboard event.
         """
-        if currentKey == 'forward':
+        if currentKey == 'forward_normal':
             self.currentState[0] = True
-        elif currentKey == 'reverse':
+        elif currentKey == 'forward_fast':
             self.currentState[1] = True
-        elif currentKey == 'left':
+        elif currentKey == 'forward_slow':
             self.currentState[2] = True
-            self.steerKey = 'left'
-        elif currentKey == 'leftleft':
-            self.currentState[2] = True
-            self.steerKey = 'leftleft'
-        elif currentKey == 'right':
+        elif currentKey == 'reverse':
             self.currentState[3] = True
-            self.steerKey = 'right'
-        elif currentKey == 'rightright':
-            self.currentState[3] = True
-            self.steerKey = 'rightright'
         elif currentKey == 'stop':
             self.currentState[4] = True
-        elif currentKey == 'straight':
-            self.currentState[7] = True
-            self.steerKey = ''
-        elif currentKey == 'park':
-            self.currentState[8] = True
         #elif currentKey == 'none':
             
 

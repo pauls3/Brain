@@ -185,8 +185,6 @@ class BrainControl(WorkerProcess):
         fps = 0
         
         
-        print()
-
         while True:
             try:
                 #timer2 = time.time()
@@ -210,8 +208,8 @@ class BrainControl(WorkerProcess):
                 detections = inPDetections.recv()
                 drawn_image = self.draw_image(image, detections, labels)
                 #out_img = cv2.resize(drawn_image, (640, 640))
-                print(drawn_image)
-                cv2.imshow(winname, drawn_image)
+                print(image)
+                cv2.imshow(winname, image)
                 cv2.waitKey(1)
                 detectionObjects = self._check_detections(self, detections, labels)
 

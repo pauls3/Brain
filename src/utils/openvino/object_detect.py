@@ -18,8 +18,6 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 from sys import getsizeof
 
-import argparse
-
 #hacked from:
 #https://software.intel.com/articles/OpenVINO-Install-RaspberryPI
 #https://opencv2-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
@@ -32,56 +30,17 @@ import argparse
 #Note cv2.dnn.blobFromImage, the size is present in the XML files, we could write a preamble to go get that data,
 #Then we dont have to explicitly set it!
 
-ap = argparse.ArgumentParser(description='NCS2 PiCamera')
-ap.add_argument('-b', '--bin')
-ap.add_argument('-x', '--xml')
-ap.add_argument('-l', '--labels')
-ap.add_argument('-pb', '--protobox')
-ap.add_argument('-pbtxt', '--protoboxtxt')
-ap.add_argument('-ct', '--conf_threshold', default=0.5)
-args = vars(ap.parse_args())
-# confThreshold = 0.4
-confThreshold = float(args['conf_threshold'])
 
-# Load the model
-if not(args['bin']) is None:
-    print("[INFO] OpenVINO format")
-    # net = cv2.dnn.readNet('models/MobileNetSSD_deploy.xml', 'models/MobileNetSSD_deploy.bin')
-    net = cv2.dnn.readNet(args['xml'], args['bin'])
-elif not(args['protobox']) is None:
-    print("[INFO] Tensorflow format")
-    net = cv2.dnn.readNetFromTensorflow(args['protobox'], args['protoboxtxt'])
-else:
-    net = cv2.dnn.readNet('ssd_mobilenet/bosch_model_0/saved_model.xml', 'ssd_mobilenet/bosch_model_0/saved_model.bin')
+confThreshold = 0.4
+
+
+# Load model
+net = cv2.dnn.readNet('ssd_mobilenet/bosch_model_0/saved_model.xml', 'ssd_mobilenet/bosch_model_0/saved_model.bin')
 
 # Specify target device
 net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
-#Misc vars
-font = cv2.FONT_HERSHEY_SIMPLEX
-frameWidth = 640
-frameHeight = 640
-queuepulls = 0.0
-detections = 0
-fps = 0.0
-qfps = 0.0
-
-
-    
-#initialize the camera and grab a reference to the raw camera capture
-#well this is interesting, we can closely match the input of the network!
-#this 'seems' to have improved accuracy!
-camera = PiCamera()
-camera.resolution = (304,304)
-camera.framerate = 20
-rawCapture = PiRGBArray(camera, size=(304, 304)) 
-
-# allow the camera to warmup
-time.sleep(0.1)
-
-    
 labels_file = 'labels.txt'
-#labels_file = args['labels']
 with open(labels_file, 'r') as f:
     labels = [x.strip() for x in f]
 print(labels)

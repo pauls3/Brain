@@ -69,10 +69,11 @@ class BrainControl(WorkerProcess):
         outPs : list(Pipe) 
             List of output pipes (not used at the moment)
         """
-        super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
+        super(BrainControl,self).__init__(inPipes, outPipes)
         self.HEIGHT = 640
         self.WIDTH = 640
-        self.inPs = inPipes[0]
+        self.inPImg = inPipes[0]
+        self.inPDetections = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
         #self.outImgPs = outPipes[1]
@@ -83,15 +84,12 @@ class BrainControl(WorkerProcess):
         self.rcBrain = RcBrainThread()
         self.servo = Servo(12)
 
-        #self.inDetected, self.outImg = Pipe(duplex=False)
-        
-        #self.listener = ObjectDetector([self.inDetected], [self.outImg])
     # ===================================== RUN ==========================================
     def run(self):
         """Apply the initializing methods and start the threads.
         """
         #self._init_socket()
-        super(CameraStreamerProcess,self).run()
+        super(BrainControl,self).run()
 
     # ===================================== INIT THREADS =================================
     def _init_threads(self):

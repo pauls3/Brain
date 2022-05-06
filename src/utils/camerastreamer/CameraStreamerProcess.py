@@ -68,6 +68,7 @@ class CameraStreamerProcess(WorkerProcess):
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
         self.outImgPs = outPipes[1]
+        self.curr_steer_angle = 0.0
         
         
     # ===================================== RUN ==========================================

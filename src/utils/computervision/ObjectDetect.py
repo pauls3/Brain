@@ -149,6 +149,7 @@ class ObjectDetection(WorkerProcess):
                     outputQueue.put(data_out)
                 else:
                     stamps, image = inP.recv()
+                    #inputQueue.put(image.array)
                     inputQueue.put(image.array)
 
                 

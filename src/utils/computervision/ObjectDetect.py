@@ -163,8 +163,8 @@ class ObjectDetection(WorkerProcess):
                     '''
                         output the detections
                     '''
-                    for outP in outPs:
-                        outP.send(out)
+                    #for outP in outPs:
+                    outPs.send(out)
 
                 stamps, image = inP.recv()
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

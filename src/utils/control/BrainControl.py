@@ -191,8 +191,12 @@ class BrainControl(WorkerProcess):
             try:
                 #timer2 = time.time()
                 # get image
-                image, steer_angle, foundStopLine = inPVision.recv()   
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                inArray = inPVision.recv()
+                image = inArray[0]
+                steer_angle = inArray[1]
+                foundStopLine = inArray[2]
+                #[image, steer_angle, foundStopLine] = inPVision.recv()   
+                #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 #foundStopLine = inPStopline.recv()
                 
                 '''
@@ -206,6 +210,7 @@ class BrainControl(WorkerProcess):
                 detections = inPDetections.recv()
                 drawn_image = self.draw_image(image, detections, labels)
                 #out_img = cv2.resize(drawn_image, (640, 640))
+                print(drawn_image)
                 cv2.imshow(winname, drawn_image)
                 cv2.waitKey(1)
                 detectionObjects = self._check_detections(self, detections, labels)

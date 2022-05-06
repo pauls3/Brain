@@ -203,8 +203,8 @@ class BrainControl(WorkerProcess):
                 # Draw bounding boxes of detected objects
                 detections = inPDetections.recv()
                 drawn_image = self.draw_image(image, detections, labels)
-                out_img = cv2.resize(drawn_image, (640, 640))
-                cv2.imshow(winname, out_img)
+                #out_img = cv2.resize(drawn_image, (640, 640))
+                cv2.imshow(winname, drawn_image)
                 cv2.waitKey(1)
                 detectionObjects = self._check_detections(self, detections, labels)
 

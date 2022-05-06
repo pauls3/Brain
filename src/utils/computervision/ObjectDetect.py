@@ -155,7 +155,7 @@ class ObjectDetection(WorkerProcess):
                 else:
                     stamps, image = inP.recv()
                     #inputQueue.put(image.array)
-                    inputQueue.put(image.array)
+                    inputQueue.put(image)
 
                 
                 if not outputQueue.empty():

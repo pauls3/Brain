@@ -73,9 +73,9 @@ class BrainControl(WorkerProcess):
         super(BrainControl,self).__init__(inPipes, outPipes)
         self.HEIGHT = 640
         self.WIDTH = 640
-        self.inPImg = inPipes[0]
+        self.inPVision = inPipes[0]
         self.inPDetections = inPipes[1]
-        self.inPStopLine = inPipes[2]
+        #self.inPStopLine = inPipes[2]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
         #self.outImgPs = outPipes[1]
@@ -108,7 +108,7 @@ class BrainControl(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='BrainControlThread', target=self._generate_command, args=(self.inPImg, self.inPDetections, self.inPStopLine, self.outPs, ))
+        streamTh = Thread(name='BrainControlThread', target=self._generate_command, args=(self.inPVision, self.inPDetections, self.inPStopLine, self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
         
@@ -134,7 +134,7 @@ class BrainControl(WorkerProcess):
     
     
     # ===================================== SEND THREAD ==================================
-    def _generate_command(self, inpImg, inPDetections, inPStopline, outPs):
+    def _generate_command(self, inPVision, inPDetections, inPStopline, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -186,7 +186,7 @@ class BrainControl(WorkerProcess):
             try:
                 #timer2 = time.time()
                 # get image
-                stamps, image = inpImg.recv()   
+                image, steer_angle, stopLine = inPVision.recv()   
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 foundStopLine = inPStopline.recv()
                 
@@ -237,7 +237,7 @@ class BrainControl(WorkerProcess):
                         self.curr_speed = 10.0
                         self._send_command(outPs, ['forward_normal'])
 
-
+                    self.curr_steer_angle = steer_angle
                     self._change_steering(self.curr_steer_angle)
                     #if self.curr_speed == 0.0:
                     #    self.curr_speed = 10.5

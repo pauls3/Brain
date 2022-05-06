@@ -30,7 +30,7 @@ import json
 import socket
 import time
 
-from src.utils.remotecontrol.RcBrainThread              import RcBrainThread
+# from src.utils.remotecontrol.RcBrainThread              import RcBrainThread
 import cv2
 import matplotlib.pyplot as plt
 
@@ -49,7 +49,7 @@ class RemoteControlReceiverProcess():
             List of output pipes (order does not matter)
         """
 
-        self.rcBrain   =  RcBrainThread()
+        # self.rcBrain   =  RcBrainThread()
         # self.lisBrR, self.lisBrS = Pipe(duplex=False)
         self.CURRENT_STATE = "null"
         self.PARKING = True

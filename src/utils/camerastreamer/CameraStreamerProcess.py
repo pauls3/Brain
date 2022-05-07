@@ -43,6 +43,11 @@ import matplotlib.pyplot as plt
 from src.templates.workerprocess import WorkerProcess
 from src.utils.control.RcBrainThread                import RcBrainThread
 
+from gpiozero import Servo
+from gpiozero import Device
+from gpiozero.pins.pigpio import PiGPIOFactory
+
+Device.pin_factory = PiGPIOFactory('127.0.0.1')
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
@@ -72,6 +77,7 @@ class CameraStreamerProcess(WorkerProcess):
         self.curr_steer_angle = 0.0
 
         self.rcBrain = RcBrainThread()
+        self.servo = Servo(12)
         
         
     # ===================================== RUN ==========================================

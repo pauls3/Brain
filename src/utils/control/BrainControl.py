@@ -202,6 +202,7 @@ class BrainControl(WorkerProcess):
                 #image = inArray[0]
                 steer_angle = inArray[0]
                 foundStopLine = inArray[1]
+                print(inArray)
                 #[image, steer_angle, foundStopLine] = inPVision.recv()   
                 #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 #foundStopLine = inPStopline.recv()

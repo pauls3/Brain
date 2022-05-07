@@ -106,7 +106,7 @@ class CameraStreamerProcess(WorkerProcess):
         inP : Pipe
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """        
-        '''
+        
         cmds = ['pid', 'stop']
         self._send_command(outPs, cmds)
 
@@ -118,7 +118,7 @@ class CameraStreamerProcess(WorkerProcess):
 
         self._send_command(outPs, ['forward_normal'])
         
-        timer1 = time.time()
+        '''timer1 = time.time()
         while True:
             timer2 = time.time()
             if timer2 - timer1 > 10:
@@ -234,7 +234,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 #for outP in self.outImgPs:
                 out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
-                self.outPs.send([self.curr_steer_angle, stopLine])
+                # self.outPs.send([self.curr_steer_angle, stopLine])
                 
 
 
@@ -246,7 +246,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
 
 
-                #self._change_steering(self.curr_steer_angle)
+                self._change_steering(self.curr_steer_angle)
                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

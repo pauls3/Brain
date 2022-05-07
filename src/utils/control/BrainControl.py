@@ -115,7 +115,7 @@ class BrainControl(WorkerProcess):
 
     # ===================================== SEND COMMANDS =================================
     def _send_command(self, outPs, commands):
-        #print(command)
+        print(command)
         for cmd in commands:
             cmd_ =  self.rcBrain.getMessage(cmd)
             if cmd_ is not None:
@@ -251,8 +251,6 @@ class BrainControl(WorkerProcess):
 
                     self.curr_steer_angle = steer_angle
                     self._change_steering(self.curr_steer_angle)
-                    #if self.curr_speed == 0.0:
-                    #    self.curr_speed = 10.5
                 elif self.currentState == 'at_intersection':
                     # look around and cross intersection
                     print("at intersection")

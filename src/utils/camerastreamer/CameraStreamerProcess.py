@@ -116,13 +116,15 @@ class CameraStreamerProcess(WorkerProcess):
 
         # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
         # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
-        polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
-        polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        cv2.fillPoly(stencil_reg, [polygon1, polygon2], 1)
+        #polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
+        #polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        #cv2.fillPoly(stencil_reg, [polygon1, polygon2], 1)
         #polygon = polygon.astype('uint8')
         #polygon = np.array([[0, 640], [0,425], [640,425], [640, 640]])
         #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
-        #cv2.fillConvexPoly(stencil_reg, polygon, 1)
+        
+        polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
+        cv2.fillConvexPoly(stencil_reg, polygon, 1)
         #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
         #poly2 = np.array([[260, 300], [260,140], [320,140], [320, 320]])
         
@@ -206,7 +208,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 #for outP in self.outImgPs:
                 out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
-                self.outPs.send(stopLine)
+                self.outPs.send([self.curr_steer_angle, stopLine])
                 
                 print(self.curr_steer_angle, stopLine)
                 cv2.imshow(winname, lane_lines_img)

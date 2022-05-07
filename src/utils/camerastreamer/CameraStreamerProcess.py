@@ -143,7 +143,7 @@ class CameraStreamerProcess(WorkerProcess):
         #cv2.moveWindow(winname, 0,0)
         
 
-        time.sleep(5)
+        # time.sleep(5)
 
         while True:
             try:
@@ -209,6 +209,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #for outP in self.outImgPs:
                 self.outImgPs.send([lane_lines_img, self.curr_steer_angle, stopLine])
                 
+                print(rgb_img)
                 cv2.imshow(winname, rgb_img)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)

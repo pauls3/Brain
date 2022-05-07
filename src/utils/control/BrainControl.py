@@ -117,6 +117,7 @@ class BrainControl(WorkerProcess):
     def _send_command(self, outPs, commands):
         for cmd in commands:
             cmd_ =  self.rcBrain.getMessage(cmd)
+            print(cmd_)
             if cmd_ is not None:
                 encode = json.dumps(cmd_).encode()
                 decode = encode.decode()

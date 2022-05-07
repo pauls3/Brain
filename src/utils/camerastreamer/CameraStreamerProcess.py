@@ -230,7 +230,7 @@ class CameraStreamerProcess(WorkerProcess):
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                
+                print(steering_angle, self.curr_steer_angle)
                 
                 #plt.imshow(lane_lines_img)
                 #plt.show()
@@ -455,7 +455,7 @@ class CameraStreamerProcess(WorkerProcess):
           curr_steering_angle, 
           new_steering_angle, 
           num_of_lane_lines, 
-          max_angle_deviation_two_lines=3, 
+          max_angle_deviation_two_lines=5, 
           max_angle_deviation_one_lane=1):
         '''
         Using last steering angle to stabilize the steering angle

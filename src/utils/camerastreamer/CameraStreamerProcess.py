@@ -223,7 +223,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # get lines
                 #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=thresh0)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, minLineLength=thresh0)
                 
                 if lines is not None:
                     for jj in range(0, len(lines)):

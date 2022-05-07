@@ -169,7 +169,7 @@ class BrainControl(WorkerProcess):
         
         tmp_state = ""
 
-        time.sleep(10)
+        time.sleep(20)
 
         print('**************************')
         print('Starting PID')

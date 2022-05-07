@@ -246,6 +246,7 @@ class BrainControl(WorkerProcess):
                 if self.currentState == "lane_centering":
 
                     if self.curr_speed != 10.0:
+                        print('setting new speed')
                         self.curr_speed = 10.0
                         self._send_command(outPs, ['forward_normal'])
 

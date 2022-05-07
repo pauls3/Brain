@@ -57,7 +57,6 @@ class WriteThread(Thread):
             command = self.inP.recv()
             # Unpacking the dictionary into action and values
             command_msg = self.messageConverter.get_command(**command)
-            for ii in range(0, 50):
-                self.serialCom.write(command_msg.encode('ascii'))
-                self.logFile.write(command_msg)
+            self.serialCom.write(command_msg.encode('ascii'))
+            self.logFile.write(command_msg)
 

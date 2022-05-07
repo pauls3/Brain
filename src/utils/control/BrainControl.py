@@ -169,20 +169,25 @@ class BrainControl(WorkerProcess):
         
         tmp_state = ""
 
-        time.sleep(20)
+        # time.sleep(20)
 
         print('**************************')
         print('Starting PID')
         print('**************************')
         cmds = ['pid', 'stop']
         self._send_command(outPs, cmds)
-        time.sleep(5)
+        # time.sleep(5)
         
         timer1 = time.time()
         frames = 0
         timer2 = 0
         t2secs = 0
         fps = 0
+
+        while True:
+            timer2 = time.time()
+            if timer2 - timer1 > 20:
+                break
         
         
         while True:

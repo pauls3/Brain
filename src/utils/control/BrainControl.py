@@ -86,7 +86,7 @@ class BrainControl(WorkerProcess):
         self.curr_view_angle = 'c'
         self.curr_speed = 0.0
         
-        self.controller = RemoteControlReceiverProcess()
+        # self.controller = RemoteControlReceiverProcess()
         self.rcBrain = RcBrainThread()
         self.fStateMachine = FiniteStateMachine()
         self.servo = Servo(12)
@@ -252,8 +252,8 @@ class BrainControl(WorkerProcess):
                     if self.curr_speed != 10.0:
                         print('setting new speed')
                         self.curr_speed = 10.0
-                        for ii in range(0, 20):
-                            self._send_command(outPs, ['forward_normal'])
+                        #for ii in range(0, 20):
+                        self._send_command(outPs, ['forward_normal'])
 
                     self.curr_steer_angle = steer_angle
                     #self._change_steering(self.curr_steer_angle)

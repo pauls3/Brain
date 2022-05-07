@@ -41,6 +41,8 @@ import cv2
 import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
+from src.utils.control.RcBrainThread                import RcBrainThread
+
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
@@ -68,6 +70,8 @@ class CameraStreamerProcess(WorkerProcess):
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
         self.curr_steer_angle = 0.0
+
+        self.rcBrain = RcBrainThread()
         
         
     # ===================================== RUN ==========================================
@@ -102,6 +106,20 @@ class CameraStreamerProcess(WorkerProcess):
         inP : Pipe
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """        
+
+        cmds = ['stop']
+        self._send_command(outPs, cmds)
+
+        timer1 = time.time()
+        while True:
+            timer2 = time.time()
+            if timer2 - timer1 > 5:
+                break
+
+        self._send_command(outPs, ['forward_normal'])
+
+
+
         stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_reg = stencil_reg.astype('uint8')
         #stencilX = np.zeros((self.HEIGHT, self.WIDTH))
@@ -208,8 +226,10 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 #for outP in self.outImgPs:
                 out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
-                self.outPs.send([self.curr_steer_angle, stopLine])
+                #self.outPs.send([self.curr_steer_angle, stopLine])
                 
+
+
                 # print(self.curr_steer_angle, stopLine)
                 cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
@@ -502,4 +522,25 @@ class CameraStreamerProcess(WorkerProcess):
         
         #return (y2 - y1) / (x2 - x1)
         return x1
+    
+
+
+        # ===================================== SEND COMMANDS =================================
+    def _send_command(self, outPs, commands):
+        for cmd in commands:
+            cmd_ =  self.rcBrain.getMessage(cmd)
+            print(cmd_)
+            if cmd_ is not None:
+                encode = json.dumps(cmd_).encode()
+                decode = encode.decode()
+                command = json.loads(decode)
+                #for outP in outPs:
+                for ii in range(0,1):
+                    outPs.send(command)
+            # translated_cmd = self.controller.get_commands(cmd)
+            # print (translated_cmd)
+            # if translated_cmd is not None:
+            #     for ii in range(0,7):
+            #         #for outP in outPs:
+            #         outPs.send(cmd)
     

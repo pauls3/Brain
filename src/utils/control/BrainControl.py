@@ -115,7 +115,6 @@ class BrainControl(WorkerProcess):
 
     # ===================================== SEND COMMANDS =================================
     def _send_command(self, outPs, commands):
-        print(commands)
         for cmd in commands:
             cmd_ =  self.rcBrain.getMessage(cmd)
             if cmd_ is not None:
@@ -123,7 +122,7 @@ class BrainControl(WorkerProcess):
                 decode = encode.decode()
                 command = json.loads(decode)
                 #for outP in outPs:
-                for ii in range(0,1):
+                for ii in range(0,7):
                     outPs.send(command)
             # translated_cmd = self.controller.get_commands(cmd)
             # print (translated_cmd)
@@ -203,7 +202,6 @@ class BrainControl(WorkerProcess):
                 #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 #foundStopLine = inPStopline.recv()
 
-                print(steer_angle, foundStopLine)
                 
                 '''
                 if frameCounter == 0 and obj_detect_flag:

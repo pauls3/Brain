@@ -60,4 +60,6 @@ class WriteThread(Thread):
             self.serialCom.write(command_msg.encode('ascii'))
             self.logFile.write(command_msg)
 
+            print(command)
+
 

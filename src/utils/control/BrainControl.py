@@ -82,7 +82,7 @@ class BrainControl(WorkerProcess):
         self.confidenceThreshold = 0.5
 
         self.curr_steer_angle = 90
-        self.currentState = "null"
+        self.currentState = "lane_centering"
         self.curr_view_angle = 'c'
         self.curr_speed = 0.0
         
@@ -239,12 +239,11 @@ class BrainControl(WorkerProcess):
 
                 # Get current state
                 #self.currentState = self.fStateMachine.get_state()
-                print(self.fStateMachine.get_state())
+                # print(self.fStateMachine.get_state())
                 # Conduct actions according to current state
 
 
                 if self.currentState == "lane_centering":
-                    print('lane centering')
 
                     if self.curr_speed != 10.0:
                         self.curr_speed = 10.0

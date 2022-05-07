@@ -455,7 +455,7 @@ class CameraStreamerProcess(WorkerProcess):
           curr_steering_angle, 
           new_steering_angle, 
           num_of_lane_lines, 
-          max_angle_deviation_two_lines=10, 
+          max_angle_deviation_two_lines=3, 
           max_angle_deviation_one_lane=1):
         '''
         Using last steering angle to stabilize the steering angle

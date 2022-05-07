@@ -205,7 +205,8 @@ class CameraStreamerProcess(WorkerProcess):
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
                 img_crop = cv2.bitwise_and(image, image, mask=stencil)
                 # convert to grayscale
-                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # blur
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
                 blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)

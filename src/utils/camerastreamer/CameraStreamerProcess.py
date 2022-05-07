@@ -209,9 +209,9 @@ class CameraStreamerProcess(WorkerProcess):
                 #for outP in self.outImgPs:
                 self.outImgPs.send([lane_lines_img, self.curr_steer_angle, stopLine])
                 
-                #cv2.imshow(winname, lane_lines_img)
+                cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
-                #cv2.waitKey(1)
+                cv2.waitKey(1)
                 
                 
 

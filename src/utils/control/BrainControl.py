@@ -190,6 +190,7 @@ class BrainControl(WorkerProcess):
                 #timer2 = time.time()
                 # get image
                 inArray = inPVision.recv()
+                print(image)
                 image = inArray[0]
                 steer_angle = inArray[1]
                 foundStopLine = inArray[2]
@@ -208,8 +209,8 @@ class BrainControl(WorkerProcess):
                 detections = inPDetections.recv()
                 drawn_image = self.draw_image(image, detections, labels)
                 #out_img = cv2.resize(drawn_image, (640, 640))
-                cv2.imshow(winname, image)
-                cv2.waitKey(1)
+                #cv2.imshow(winname, image)
+                #cv2.waitKey(1)
                 detectionObjects = self._check_detections(detections, labels)
 
 

@@ -62,14 +62,10 @@ class RcBrainThread:
         self.speed = 0.0
         self.steerAngle = 0.0
         self.pida = False
-        self.pids_kp = 0.150000
-        self.pids_ki = 0.850000
-        self.pids_kd = 0.0052
+        self.pids_kp = 0.115000
+        self.pids_ki = 0.810000
+        self.pids_kd = 0.000222
         self.pids_tf = 0.040000
-        #self.pids_kp = 0.115000
-        #self.pids_ki = 0.810000
-        #self.pids_kd = 0.000222
-        #self.pids_tf = 0.040000
         self.steerKey = ""
 
 
@@ -138,7 +134,7 @@ class RcBrainThread:
         # SPEED command
         elif self.currentState[0] or self.currentState[1] or self.currentState[2] or self.currentState[2]:
             data['action']        =  '1'
-            data['speed']         =  float(self.speed)
+            data['speed']         =  float(self.speed/100.0)
             self.currentState[0] = False
             self.currentState[1] = False
             self.currentState[2] = False

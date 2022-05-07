@@ -48,7 +48,7 @@ from src.utils.control.RemoteControlReceiverProcess   import RemoteControlReceiv
 from src.utils.computervision.ObjectDetect            import ObjectDetection
 from src.utils.computervision.ImageProcess            import ImageProcess
 from src.utils.camerastreamer.CameraStreamerProcess         import CameraStreamerProcess
-from src.utils.control.BrainControl                   import BrainControl
+# from src.utils.control.BrainControl                   import BrainControl
 
 def main():
     # =============================== CONFIG =================================================
@@ -110,8 +110,8 @@ def main():
     #rcProc = RemoteControlReceiverProcess([],[rcShS])
     #allProcesses.append(rcProc)
     
-    brainProc = BrainControl([inCmd, inDetected], [rcShS])
-    allProcesses.append(brainProc)
+    # brainProc = BrainControl([inCmd, inDetected], [rcShS])
+    # allProcesses.append(brainProc)
 
     # ===================================== START PROCESSES ==================================
     print("Starting the processes!",allProcesses)

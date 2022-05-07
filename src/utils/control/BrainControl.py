@@ -45,11 +45,11 @@ from src.utils.control.RemoteControlReceiverProcess import RemoteControlReceiver
 from src.utils.control.RcBrainThread                import RcBrainThread
 from src.utils.finitestatemachine.FiniteStateMachine import FiniteStateMachine
 
-from gpiozero import Servo
-from gpiozero import Device
-from gpiozero.pins.pigpio import PiGPIOFactory
+# from gpiozero import Servo
+# from gpiozero import Device
+# from gpiozero.pins.pigpio import PiGPIOFactory
 
-Device.pin_factory = PiGPIOFactory('127.0.0.1')
+# Device.pin_factory = PiGPIOFactory('127.0.0.1')
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
@@ -89,7 +89,7 @@ class BrainControl(WorkerProcess):
         # self.controller = RemoteControlReceiverProcess()
         self.rcBrain = RcBrainThread()
         self.fStateMachine = FiniteStateMachine()
-        self.servo = Servo(12)
+        # self.servo = Servo(12)
 
     # ===================================== RUN ==========================================
     def run(self):
@@ -353,7 +353,7 @@ class BrainControl(WorkerProcess):
             
         #print(angle, correct_angle)
         
-        self.servo.value = correct_angle
+        # self.servo.value = correct_angle
     
     def _get_slope(self, x1, y1, x2, y2):
         x1 = float(x1)

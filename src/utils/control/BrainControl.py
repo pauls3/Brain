@@ -115,7 +115,7 @@ class BrainControl(WorkerProcess):
 
     # ===================================== SEND COMMANDS =================================
     def _send_command(self, outPs, commands):
-        print(command)
+        print(commands)
         for cmd in commands:
             cmd_ =  self.rcBrain.getMessage(cmd)
             if cmd_ is not None:

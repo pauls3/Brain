@@ -74,9 +74,10 @@ class SerialHandlerProcess(WorkerProcess):
         # read write thread        
         readTh  = ReadThread(self.serialCom,self.historyFile)
         self.threads.append(readTh)
-        writeTh = WriteThread(self.inPs[0], self.serialCom, self.historyFile)
-        self.threads.append(writeTh)
-    
+        for ii in range(0, 50):
+            writeTh = WriteThread(self.inPs[0], self.serialCom, self.historyFile)
+            self.threads.append(writeTh)
+        
 
     
 

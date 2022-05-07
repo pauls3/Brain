@@ -61,7 +61,7 @@ class RcBrainThread:
 
         self.speed = 0.0
         self.steerAngle = 0.0
-        self.pida = False
+        self.pida = True
         self.pids_kp = 0.150000
         self.pids_ki = 0.850000
         self.pids_kd = 0.0052

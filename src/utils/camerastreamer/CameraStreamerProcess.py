@@ -110,6 +110,8 @@ class CameraStreamerProcess(WorkerProcess):
         cmds = ['pid', 'stop']
         self._send_command(outPs, cmds)
 
+        self._send_command(outPs, ['forward_normal'])
+        
         timer1 = time.time()
         while True:
             timer2 = time.time()

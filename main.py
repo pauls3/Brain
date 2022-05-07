@@ -78,7 +78,7 @@ def main():
         camProc = CameraProcess([],[camStS])
         allProcesses.append(camProc)
 
-        streamProc = CameraStreamerProcess([camStR], [outCmd, outImg])
+        streamProc = CameraStreamerProcess([camStR], [outCmd])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         #streamProc = CameraStreamerProcess([camStR], [rcShS])
         #streamProc = ImageProcess([camStR], [rcShS])
@@ -110,8 +110,8 @@ def main():
     #rcProc = RemoteControlReceiverProcess([],[rcShS])
     #allProcesses.append(rcProc)
     
-    #brainProc = BrainControl([inImg, inDetected], [rcShS])
-    #allProcesses.append(brainProc)
+    brainProc = BrainControl([inImg, inDetected], [rcShS])
+    allProcesses.append(brainProc)
 
     # ===================================== START PROCESSES ==================================
     print("Starting the processes!",allProcesses)

@@ -195,9 +195,9 @@ class BrainControl(WorkerProcess):
                 #timer2 = time.time()
                 # get image
                 inArray = inPVision.recv()
-                image = inArray[0]
-                steer_angle = inArray[1]
-                foundStopLine = inArray[2]
+                #image = inArray[0]
+                steer_angle = inArray[0]
+                foundStopLine = inArray[1]
                 #[image, steer_angle, foundStopLine] = inPVision.recv()   
                 #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 #foundStopLine = inPStopline.recv()
@@ -210,12 +210,12 @@ class BrainControl(WorkerProcess):
 
                                 
                 # Draw bounding boxes of detected objects
-                detections = inPDetections.recv()
-                drawn_image = self.draw_image(image, detections, labels)
+                #detections = inPDetections.recv()
+                #drawn_image = self.draw_image(image, detections, labels)
                 #out_img = cv2.resize(drawn_image, (640, 640))
                 #cv2.imshow(winname, image)
                 #cv2.waitKey(1)
-                detectionObjects = self._check_detections(detections, labels)
+                #detectionObjects = self._check_detections(detections, labels)
 
 
                 #self._send_command(outPs, fake_cmds)

@@ -186,12 +186,13 @@ class BrainControl(WorkerProcess):
 
         while True:
             timer2 = time.time()
-            if timer2 - timer1 > 20:
+            if timer2 - timer1 > 5:
                 break
         
         
         while True:
             try:
+                print('.')
                 #timer2 = time.time()
                 # get image
                 inArray = inPVision.recv()

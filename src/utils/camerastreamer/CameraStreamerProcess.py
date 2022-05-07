@@ -155,7 +155,6 @@ class CameraStreamerProcess(WorkerProcess):
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 
-                print('0')
 
                 # convert to grayscale
                 #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -170,7 +169,6 @@ class CameraStreamerProcess(WorkerProcess):
                 # get threshold
                 ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
                 
-                print('1')
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
@@ -179,7 +177,6 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # get lines
                 lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                print('2')
                 '''
                 if lines is not None:
                     for jj in range(0, len(lines)):
@@ -192,7 +189,6 @@ class CameraStreamerProcess(WorkerProcess):
                 # get lane lines
                 lane_lines = self._avg_slope_intersect(lines)
                 
-                print('3')
                 #frame_objects = rgb_img
                 
                 # draw lines to grayscale image
@@ -202,7 +198,6 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
                 
-                print('4')
                 
                 #plt.imshow(lane_lines_img)
                 #plt.show()
@@ -213,10 +208,11 @@ class CameraStreamerProcess(WorkerProcess):
                 #for outP in self.outImgPs:
                 #self.outImgPs.send([lane_lines_img, self.curr_steer_angle, stopLine])
                 
-                cv2.imshow(winname, rawImage)
+                print(self.curr_steer_angle, stopLine)
+                cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(10)
-                print('image')
+                # print('image')
                 
 
 

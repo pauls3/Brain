@@ -78,8 +78,8 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.normalSpeed        =   14.0
-        self.slowSpeed          =   8.5
+        self.normalSpeed        =   10.0
+        self.slowSpeed          =   8.0
         self.fastSpeed          =   13.0
 
         self.startSteerAngle    =   10.0

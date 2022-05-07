@@ -177,7 +177,8 @@ class BrainControl(WorkerProcess):
         cmds = ['stop']
         # cmds = ['pid', 'stop']
 
-        self._send_command(outPs, cmds)
+        for ii in range(0, 10):
+            self._send_command(outPs, cmds)
         time.sleep(5)
         
         timer1 = time.time()
@@ -251,7 +252,8 @@ class BrainControl(WorkerProcess):
                     if self.curr_speed != 10.0:
                         print('setting new speed')
                         self.curr_speed = 10.0
-                        self._send_command(outPs, ['forward_normal'])
+                        for ii in range(0, 20):
+                            self._send_command(outPs, ['forward_normal'])
 
                     self.curr_steer_angle = steer_angle
                     #self._change_steering(self.curr_steer_angle)

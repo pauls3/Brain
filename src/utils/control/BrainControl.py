@@ -252,7 +252,7 @@ class BrainControl(WorkerProcess):
                         self._send_command(outPs, ['forward_normal'])
 
                     self.curr_steer_angle = steer_angle
-                    self._change_steering(self.curr_steer_angle)
+                    #self._change_steering(self.curr_steer_angle)
                 elif self.currentState == 'at_intersection':
                     # look around and cross intersection
                     print("at intersection")

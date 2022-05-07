@@ -192,7 +192,7 @@ class BrainControl(WorkerProcess):
         
         while True:
             try:
-                print('.')
+                
                 #timer2 = time.time()
                 # get image
                 inArray = inPVision.recv()
@@ -202,6 +202,8 @@ class BrainControl(WorkerProcess):
                 #[image, steer_angle, foundStopLine] = inPVision.recv()   
                 #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 #foundStopLine = inPStopline.recv()
+
+                print(steer_angle, foundStopLine)
                 
                 '''
                 if frameCounter == 0 and obj_detect_flag:
@@ -226,15 +228,15 @@ class BrainControl(WorkerProcess):
 
 
                 # Try to change state
-                if foundStopLine:
-                    print('found stop line')
-                    ''' 
+               # if foundStopLine:
+                #    print('found stop line')
+                ''' 
                         at intersection:
                         rotate servo left and right
                         figure out what to do next
                     '''
                     # at_intersection
-                    self.fStateMachine.change_state('at_intersection')
+                 #   self.fStateMachine.change_state('at_intersection')
 
 
                 # Get current state

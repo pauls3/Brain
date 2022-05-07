@@ -123,7 +123,7 @@ class BrainControl(WorkerProcess):
                 decode = encode.decode()
                 command = json.loads(decode)
                 #for outP in outPs:
-                for ii in range(0,7):
+                for ii in range(0,1):
                     outPs.send(command)
             # translated_cmd = self.controller.get_commands(cmd)
             # print (translated_cmd)

@@ -210,7 +210,7 @@ class CameraStreamerProcess(WorkerProcess):
                 out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
                 self.outPs.send([self.curr_steer_angle, stopLine])
                 
-                print(self.curr_steer_angle, stopLine)
+                # print(self.curr_steer_angle, stopLine)
                 cv2.imshow(winname, lane_lines_img)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(10)

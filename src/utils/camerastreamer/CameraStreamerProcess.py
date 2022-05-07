@@ -52,6 +52,9 @@ Device.pin_factory = PiGPIOFactory('127.0.0.1')
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
 
+def nothing(x):
+    pass
+
 class CameraStreamerProcess(WorkerProcess):
     
     # ===================================== INIT =========================================
@@ -122,7 +125,7 @@ class CameraStreamerProcess(WorkerProcess):
             if timer2 - timer1 > 3:
                 break
 
-        self._send_command(outPs, ['forward_normal'])
+        #self._send_command(outPs, ['forward_normal'])
         
         '''timer1 = time.time()
         while True:
@@ -178,7 +181,14 @@ class CameraStreamerProcess(WorkerProcess):
         # time.sleep(5)
 
         print('_image')
+
+        cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('Hough', 'RebelDynamics', 0, 255, nothing)
         
+        thresh0 = thresh1 = hough0 = 0
+        Pthresh0 = Pthresh1 = Phough0 = 0
+
         while True:
             try:
                 # get image
@@ -200,8 +210,8 @@ class CameraStreamerProcess(WorkerProcess):
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
                 blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
                 # get threshold
+                # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
                 ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
-                
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
@@ -209,6 +219,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
+                #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
                 lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
                 '''
                 if lines is not None:
@@ -242,16 +253,27 @@ class CameraStreamerProcess(WorkerProcess):
                 # self.outPs.send([self.curr_steer_angle, stopLine])
                 
 
+                thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                hough0 =cv2.getTrackbarPos('Hough', 'RebelDynamics')
+
+                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough0 != Phough0):
+                    print("(thresh0 = %d , thresh1 = %d, hough0 = %d)" % (thresh0, thresh1, hough0))
+                    Pthresh0 = thresh0
+                    Pthresh1 = thresh1
+                    Phough0 = hough0
+
+
 
                 # print(self.curr_steer_angle, stopLine)
-                cv2.imshow(winname, lane_lines_img)
+                cv2.imshow(winname, thresh)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 # print('image')
                 
 
 
-                self._change_steering(steering_angle)
+                #self._change_steering(steering_angle)
                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

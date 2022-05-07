@@ -113,12 +113,19 @@ class CameraStreamerProcess(WorkerProcess):
         timer1 = time.time()
         while True:
             timer2 = time.time()
-            if timer2 - timer1 > 20:
+            if timer2 - timer1 > 5:
                 break
 
         self._send_command(outPs, ['forward_normal'])
 
 
+        timer1 = time.time()
+        while True:
+            timer2 = time.time()
+            if timer2 - timer1 > 5:
+                break
+
+        self._send_command(outPs, ['forward_slow'])
 
         stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_reg = stencil_reg.astype('uint8')
@@ -535,7 +542,7 @@ class CameraStreamerProcess(WorkerProcess):
                 decode = encode.decode()
                 command = json.loads(decode)
                 #for outP in outPs:
-                for ii in range(0,1):
+                for ii in range(0,20):
                     outPs.send(command)
             # translated_cmd = self.controller.get_commands(cmd)
             # print (translated_cmd)

@@ -224,8 +224,8 @@ class RcBrainThread:
         if self.currentState[0]:
             if self.speed != self.normalSpeed:
                 self.speed = self.normalSpeed
-            else:
-               self.currentState[0] = False
+            #else:
+               #self.currentState[0] = False
             #else:
             #    self.currentState[0] = False
             # elif self.speed == -self.startSpeed:

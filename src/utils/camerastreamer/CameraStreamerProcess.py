@@ -112,8 +112,9 @@ class CameraStreamerProcess(WorkerProcess):
 
         timer1 = time.time()
         while True:
+            self._send_command(outPs, ['forward_normal'])
             timer2 = time.time()
-            if timer2 - timer1 > 5:
+            if timer2 - timer1 > 10:
                 break
 
         self._send_command(outPs, ['forward_normal'])

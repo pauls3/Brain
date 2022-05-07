@@ -211,7 +211,7 @@ class CameraStreamerProcess(WorkerProcess):
                 blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
                 # get threshold
                 # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
-                ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
+                ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
@@ -220,7 +220,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # get lines
                 #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=thresh0)
                 '''
                 if lines is not None:
                     for jj in range(0, len(lines)):

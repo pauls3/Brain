@@ -208,10 +208,9 @@ class BrainControl(WorkerProcess):
                 detections = inPDetections.recv()
                 drawn_image = self.draw_image(image, detections, labels)
                 #out_img = cv2.resize(drawn_image, (640, 640))
-                print(image)
                 cv2.imshow(winname, image)
                 cv2.waitKey(1)
-                detectionObjects = self._check_detections(self, detections, labels)
+                detectionObjects = self._check_detections(detections, labels)
 
 
                 #self._send_command(outPs, fake_cmds)

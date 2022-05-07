@@ -61,7 +61,7 @@ class RcBrainThread:
 
         self.speed = 0.0
         self.steerAngle = 0.0
-        self.pida = True
+        self.pida = False
         self.pids_kp = 0.150000
         self.pids_ki = 0.850000
         self.pids_kd = 0.0052
@@ -78,7 +78,7 @@ class RcBrainThread:
         self.parameterIncrement =   0.1
         self.limit_configParam = RcBrainConfigParams(21.0, 30.0, 3.0, 4.0, 0.001, 0.001, 0.000001)
 
-        self.normalSpeed        =   11.0
+        self.normalSpeed        =   14.0
         self.slowSpeed          =   8.5
         self.fastSpeed          =   13.0
 

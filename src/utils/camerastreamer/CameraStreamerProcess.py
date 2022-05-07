@@ -116,15 +116,6 @@ class CameraStreamerProcess(WorkerProcess):
             if timer2 - timer1 > 10:
                 break
 
-        self._send_command(outPs, ['forward_normal'])
-
-
-        timer1 = time.time()
-        while True:
-            timer2 = time.time()
-            if timer2 - timer1 > 5:
-                break
-
         self._send_command(outPs, ['forward_slow'])
 
         stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))

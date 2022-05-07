@@ -174,11 +174,11 @@ class BrainControl(WorkerProcess):
         print('**************************')
         print('Starting PID')
         print('**************************')
-        cmds = ['stop']
-        # cmds = ['pid', 'stop']
+        # cmds = ['stop']
+        cmds = ['pid', 'stop']
 
-        for ii in range(0, 10):
-            self._send_command(outPs, cmds)
+        # for ii in range(0, 10):
+        self._send_command(outPs, cmds)
         time.sleep(5)
         
         timer1 = time.time()
@@ -187,10 +187,10 @@ class BrainControl(WorkerProcess):
         t2secs = 0
         fps = 0
 
-        while True:
-            timer2 = time.time()
-            if timer2 - timer1 > 5:
-                break
+        # while True:
+        #     timer2 = time.time()
+        #     if timer2 - timer1 > 5:
+        #         break
         
         
         while True:

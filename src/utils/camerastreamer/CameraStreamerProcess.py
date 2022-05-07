@@ -184,10 +184,11 @@ class CameraStreamerProcess(WorkerProcess):
 
         cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
         cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('Hough', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughGap', 'RebelDynamics', 0, 255, nothing)
         
-        thresh0 = thresh1 = hough0 = 0
-        Pthresh0 = Pthresh1 = Phough0 = 0
+        thresh0 = thresh1 = hough0 = hough1 =  0
+        Pthresh0 = Pthresh1 = Phough0 = Phough1 = 0
 
         while True:
             try:
@@ -212,6 +213,7 @@ class CameraStreamerProcess(WorkerProcess):
                 blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
                 # get threshold
                 # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
+                # (199, 170) for plastic ground
                 ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
@@ -221,13 +223,13 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # get lines
                 #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=thresh0)
-                '''
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=thresh0)
+                
                 if lines is not None:
                     for jj in range(0, len(lines)):
                         ll = lines[jj][0]
                         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
-                '''
+                
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                 
@@ -256,18 +258,20 @@ class CameraStreamerProcess(WorkerProcess):
 
                 thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
                 thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
-                hough0 =cv2.getTrackbarPos('Hough', 'RebelDynamics')
+                hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
 
-                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough0 != Phough0):
-                    print("(thresh0 = %d , thresh1 = %d, hough0 = %d)" % (thresh0, thresh1, hough0))
+                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                    print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
                     Pthresh0 = thresh0
                     Pthresh1 = thresh1
                     Phough0 = hough0
+                    Phough1 = hough1
 
 
 
                 # print(self.curr_steer_angle, stopLine)
-                cv2.imshow(winname, thresh)
+                cv2.imshow(winname, rgb_img)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 # print('image')

@@ -107,13 +107,13 @@ class CameraStreamerProcess(WorkerProcess):
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """        
 
-        cmds = ['stop']
+        cmds = ['pid', 'stop']
         self._send_command(outPs, cmds)
 
         timer1 = time.time()
         while True:
             timer2 = time.time()
-            if timer2 - timer1 > 5:
+            if timer2 - timer1 > 20:
                 break
 
         self._send_command(outPs, ['forward_normal'])

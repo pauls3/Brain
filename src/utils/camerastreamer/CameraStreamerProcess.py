@@ -234,7 +234,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 #for outP in self.outImgPs:
                 out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
-                #self.outPs.send([self.curr_steer_angle, stopLine])
+                self.outPs.send([self.curr_steer_angle, stopLine])
                 
 
 

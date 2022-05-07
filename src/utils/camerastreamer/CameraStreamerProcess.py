@@ -187,8 +187,8 @@ class CameraStreamerProcess(WorkerProcess):
         cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
         cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
         
-        thresh0 = thresh1 = hough0 = hough1 =  0
-        Pthresh0 = Pthresh1 = Phough0 = Phough1 = 0
+        thresh0 = thresh1 = hough0 = hough1 =  1
+        Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
 
         while True:
             try:

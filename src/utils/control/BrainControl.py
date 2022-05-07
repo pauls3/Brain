@@ -174,9 +174,11 @@ class BrainControl(WorkerProcess):
         print('**************************')
         print('Starting PID')
         print('**************************')
-        cmds = ['pid', 'stop']
+        cmds = ['stop']
+        # cmds = ['pid', 'stop']
+
         self._send_command(outPs, cmds)
-        # time.sleep(5)
+        time.sleep(5)
         
         timer1 = time.time()
         frames = 0

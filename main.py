@@ -110,7 +110,7 @@ def main():
     #rcProc = RemoteControlReceiverProcess([],[rcShS])
     #allProcesses.append(rcProc)
     
-    brainProc = BrainControl([inImg, inDetected], [rcShS])
+    brainProc = BrainControl([inCmd, inDetected], [rcShS])
     allProcesses.append(brainProc)
 
     # ===================================== START PROCESSES ==================================

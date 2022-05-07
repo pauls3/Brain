@@ -145,12 +145,13 @@ class CameraStreamerProcess(WorkerProcess):
 
         # time.sleep(5)
 
+        print('_image')
         while True:
             try:
                 # get image
-                stamps, image = inP.recv()
+                stamps, rawImage = inP.recv()
                 
-                image = cv2.resize(image, (300, 300))
+                image = cv2.resize(rawImage, (300, 300))
                 # send to object detection
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 
@@ -209,7 +210,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #for outP in self.outImgPs:
                 self.outImgPs.send([lane_lines_img, self.curr_steer_angle, stopLine])
                 
-                cv2.imshow(winname, rgb_img)
+                cv2.imshow(winname, rawImage)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 print('image')

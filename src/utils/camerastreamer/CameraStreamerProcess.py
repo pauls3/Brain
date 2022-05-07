@@ -212,7 +212,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 cv2.imshow(winname, rawImage)
                 #cv2.imshow(winname, edges)
-                cv2.waitKey(1)
+                cv2.waitKey(10)
                 print('image')
                 
 

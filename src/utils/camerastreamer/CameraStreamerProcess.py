@@ -67,7 +67,6 @@ class CameraStreamerProcess(WorkerProcess):
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
-        self.outImgPs = outPipes[1]
         self.curr_steer_angle = 0.0
         
         
@@ -206,7 +205,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #cv2.imshow(winname, out_img)
                 
                 #for outP in self.outImgPs:
-                #self.outImgPs.send([lane_lines_img, self.curr_steer_angle, stopLine])
+                self.outPs.send([lane_lines_img, self.curr_steer_angle, stopLine])
                 
                 print(self.curr_steer_angle, stopLine)
                 cv2.imshow(winname, lane_lines_img)
@@ -393,7 +392,7 @@ class CameraStreamerProcess(WorkerProcess):
             
             #if x1 > 320 and x2 < 130:
             
-            print(x1, x2, x_offset)
+            #print(x1, x2, x_offset)
             
             cv2.line(frame, (int(x_offset), int(y_offset)), (mid, self.HEIGHT), (0,255,0), 3)
             #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))

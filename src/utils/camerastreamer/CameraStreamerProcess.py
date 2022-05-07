@@ -185,7 +185,7 @@ class CameraStreamerProcess(WorkerProcess):
         cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
         cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
         cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('HoughGap', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
         
         thresh0 = thresh1 = hough0 = hough1 =  0
         Pthresh0 = Pthresh1 = Phough0 = Phough1 = 0
@@ -223,7 +223,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # get lines
                 #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, minLineLength=thresh0)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/hough0, hough1)
                 
                 if lines is not None:
                     for jj in range(0, len(lines)):

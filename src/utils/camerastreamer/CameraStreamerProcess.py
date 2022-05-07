@@ -143,7 +143,7 @@ class CameraStreamerProcess(WorkerProcess):
         #cv2.moveWindow(winname, 0,0)
         
 
-        time.sleep(10)
+        time.sleep(5)
 
         while True:
             try:

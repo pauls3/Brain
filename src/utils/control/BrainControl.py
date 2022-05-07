@@ -190,7 +190,6 @@ class BrainControl(WorkerProcess):
                 #timer2 = time.time()
                 # get image
                 inArray = inPVision.recv()
-                print(image)
                 image = inArray[0]
                 steer_angle = inArray[1]
                 foundStopLine = inArray[2]

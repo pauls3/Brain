@@ -107,7 +107,7 @@ class CameraStreamerProcess(WorkerProcess):
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """        
 
-        cmds = ['pid', 'stop']
+        cmds = ['stop']
         self._send_command(outPs, cmds)
 
         timer1 = time.time()
@@ -172,87 +172,88 @@ class CameraStreamerProcess(WorkerProcess):
         # time.sleep(5)
 
         print('_image')
-        while True:
-            try:
-                # get image
-                stamps, rawImage = inP.recv()
+        
+        # while True:
+        #     try:
+        #         # get image
+        #         stamps, rawImage = inP.recv()
                 
-                image = cv2.resize(rawImage, (300, 300))
-                # send to object detection
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                
-
-                # convert to grayscale
-                #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                # crop with mask
-                #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-                img_crop = cv2.bitwise_and(image, image, mask=stencil)
-                # convert to grayscale
-                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                # blur
-                #blur_img = cv2.blur(img_crop_gray, (10,10))
-                blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
-                # get threshold
-                ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
-                
-                # get edges
-                # Canny 
-                edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
-                # Sobel
-                #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
-                
-                # get lines
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                '''
-                if lines is not None:
-                    for jj in range(0, len(lines)):
-                        ll = lines[jj][0]
-                        cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
-                '''
-                # convert to rgb
-                #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
-                
-                # get lane lines
-                lane_lines = self._avg_slope_intersect(lines)
-                
-                #frame_objects = rgb_img
-                
-                # draw lines to grayscale image
-                #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
-                lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
-                
-                self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                
-                
-                #plt.imshow(lane_lines_img)
-                #plt.show()
-                #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
-                #out_img = cv2.resize(lane_lines_img, (640, 640))
-                #cv2.imshow(winname, out_img)
-                
-                #for outP in self.outImgPs:
-                out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
-                #self.outPs.send([self.curr_steer_angle, stopLine])
+        #         image = cv2.resize(rawImage, (300, 300))
+        #         # send to object detection
+        #         rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 
 
-
-                # print(self.curr_steer_angle, stopLine)
-                cv2.imshow(winname, lane_lines_img)
-                #cv2.imshow(winname, edges)
-                cv2.waitKey(10)
-                # print('image')
+        #         # convert to grayscale
+        #         #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        #         # crop with mask
+        #         #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
+        #         img_crop = cv2.bitwise_and(image, image, mask=stencil)
+        #         # convert to grayscale
+        #         img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+        #         # blur
+        #         #blur_img = cv2.blur(img_crop_gray, (10,10))
+        #         blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
+        #         # get threshold
+        #         ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
+                
+        #         # get edges
+        #         # Canny 
+        #         edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+        #         # Sobel
+        #         #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
+                
+        #         # get lines
+        #         lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+        #         '''
+        #         if lines is not None:
+        #             for jj in range(0, len(lines)):
+        #                 ll = lines[jj][0]
+        #                 cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
+        #         '''
+        #         # convert to rgb
+        #         #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
+                
+        #         # get lane lines
+        #         lane_lines = self._avg_slope_intersect(lines)
+                
+        #         #frame_objects = rgb_img
+                
+        #         # draw lines to grayscale image
+        #         #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
+        #         #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
+        #         lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
+                
+        #         self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
+                
+                
+        #         #plt.imshow(lane_lines_img)
+        #         #plt.show()
+        #         #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
+        #         #out_img = cv2.resize(lane_lines_img, (640, 640))
+        #         #cv2.imshow(winname, out_img)
+                
+        #         #for outP in self.outImgPs:
+        #         out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
+        #         #self.outPs.send([self.curr_steer_angle, stopLine])
                 
 
 
-                #self._change_steering(self.curr_steer_angle)
+        #         # print(self.curr_steer_angle, stopLine)
+        #         cv2.imshow(winname, lane_lines_img)
+        #         #cv2.imshow(winname, edges)
+        #         cv2.waitKey(10)
+        #         # print('image')
                 
-            except Exception as e:
-                print("CameraStreamerProcess failed to stream images:",e,"\n")
-                # Reinitialize the socket for reconnecting to client.  
-                #self.connection = None
-                #self._init_socket()
-                pass
+
+
+        #         #self._change_steering(self.curr_steer_angle)
+                
+        #     except Exception as e:
+        #         print("CameraStreamerProcess failed to stream images:",e,"\n")
+        #         # Reinitialize the socket for reconnecting to client.  
+        #         #self.connection = None
+        #         #self._init_socket()
+        #         pass
             
 
 

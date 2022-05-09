@@ -291,10 +291,28 @@ class CameraStreamerProcess(WorkerProcess):
                 # time.sleep(5)
                 # time.sleep(5)
 
+
+
+                
                 
                 passed_time = timer2 - timer1
+                
+                # from stop line to left turn:
+                #     go forward 5 seconds
+                #     make left turn (-0.75) for 8 seconds
+                #     go straight
+                '''
                 if passed_time > 5 and steerFlag == 0:
                     self._test_steering(-0.75)
+                    steerFlag = 1
+
+                if timer2 - timer1 > 13 and steerFlag == 1:
+                    self._test_steering(0.0)
+                    steerFlag = 2
+                '''
+
+                if passed_time > 3 and steerFlag == 0:
+                    self._test_steering(0.75)
                     steerFlag = 1
 
                 if timer2 - timer1 > 13 and steerFlag == 1:

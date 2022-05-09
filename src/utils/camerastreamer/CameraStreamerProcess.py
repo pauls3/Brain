@@ -135,6 +135,8 @@ class CameraStreamerProcess(WorkerProcess):
 
         self._send_command(outPs, ['forward_slow'])
         '''
+        self._send_command(outPs, ['forward_normal'])
+        
 
         stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_reg = stencil_reg.astype('uint8')
@@ -189,6 +191,8 @@ class CameraStreamerProcess(WorkerProcess):
         
         thresh0 = thresh1 = hough0 = hough1 =  1
         Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
+
+        left_turn = []
 
         while True:
             try:
@@ -275,7 +279,19 @@ class CameraStreamerProcess(WorkerProcess):
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 # print('image')
-                
+
+
+
+                # Testing intersection crossing
+                # time.sleep(5)
+                time.sleep(5)
+                self._change_steering(0.75)
+
+                time.sleep(20)
+                self._change_steering(0.0)
+
+
+                                
 
 
                 #self._change_steering(steering_angle)

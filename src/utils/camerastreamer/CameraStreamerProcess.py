@@ -293,11 +293,11 @@ class CameraStreamerProcess(WorkerProcess):
 
                 
                 passed_time = timer2 - timer1
-                if passed_time > 2 and steerFlag == 0:
+                if passed_time > 4 and steerFlag == 0:
                     self._test_steering(-0.75)
                     steerFlag = 1
 
-                if timer2 - timer1 > 7 and steerFlag == 1:
+                if timer2 - timer1 > 8 and steerFlag == 1:
                     self._test_steering(0.0)
                     steerFlag = 2
                 # time.sleep(3)

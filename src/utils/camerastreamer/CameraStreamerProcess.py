@@ -194,7 +194,7 @@ class CameraStreamerProcess(WorkerProcess):
 
         left_turn = []
 
-
+        steerFlag = 0
 
         timer1 = time.time()
         while True:
@@ -293,13 +293,15 @@ class CameraStreamerProcess(WorkerProcess):
 
                 
                 passed_time = timer2 - timer1
-                if passed_time > 3 and passed_time:
+                if passed_time > 3 and steerFlag == 0:
                     self._test_steering(0.75)
+                    steerFlag = 1
 
-                if timer2 - timer1 > 3:
-
+                if timer2 - timer1 > 3 and steerFlag == 1:
+                    self._test_steering(0.0)
+                    steerFlag = 2
                 # time.sleep(3)
-                self._test_steering(0.0)
+                # self._test_steering(0.0)
 
 
                                 

@@ -544,6 +544,7 @@ class CameraStreamerProcess(WorkerProcess):
 
 
     def _test_steering(self, angle):
+        print(angle)
         self.servo.value = angle
     
     def _change_steering(self, angle):

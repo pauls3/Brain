@@ -275,9 +275,9 @@ class CameraStreamerProcess(WorkerProcess):
 
 
                 # print(self.curr_steer_angle, stopLine)
-                cv2.imshow(winname, rgb_img)
+                #cv2.imshow(winname, rgb_img)
                 #cv2.imshow(winname, edges)
-                cv2.waitKey(1)
+                #cv2.waitKey(1)
                 # print('image')
 
 
@@ -285,10 +285,10 @@ class CameraStreamerProcess(WorkerProcess):
                 # Testing intersection crossing
                 # time.sleep(5)
                 # time.sleep(5)
-                self._change_steering(0.75)
+                self._test_steering(0.75)
 
-                # time.sleep(20)
-                self._change_steering(0.0)
+                # time.sleep(3)
+                self._test_steering(0.0)
 
 
                                 
@@ -541,6 +541,10 @@ class CameraStreamerProcess(WorkerProcess):
         else:
             return ['forward', 'straight']
         '''
+
+
+    def _test_steering(self, angle):
+        self.servo.value = angle
     
     def _change_steering(self, angle):
         # angle values:

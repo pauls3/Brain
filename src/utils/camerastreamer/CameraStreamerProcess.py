@@ -194,8 +194,13 @@ class CameraStreamerProcess(WorkerProcess):
 
         left_turn = []
 
+
+
+        timer1 = time.time()
         while True:
             try:
+
+                timer2 = time.time()
                 # get image
                 stamps, rawImage = inP.recv()
                 
@@ -285,7 +290,13 @@ class CameraStreamerProcess(WorkerProcess):
                 # Testing intersection crossing
                 # time.sleep(5)
                 # time.sleep(5)
-                self._test_steering(0.75)
+
+                
+                passed_time = timer2 - timer1
+                if passed_time > 3 and passed_time:
+                    self._test_steering(0.75)
+
+                if timer2 - timer1 > 3:
 
                 # time.sleep(3)
                 self._test_steering(0.0)

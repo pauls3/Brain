@@ -311,8 +311,8 @@ class CameraStreamerProcess(WorkerProcess):
                     steerFlag = 2
                 '''
 
-                if passed_time > 1 and steerFlag == 0:
-                    self._test_steering(0.8)
+                if passed_time > 0.5 and steerFlag == 0:
+                    self._test_steering(0.9)
                     steerFlag = 1
 
                 if timer2 - timer1 > 12 and steerFlag == 1:

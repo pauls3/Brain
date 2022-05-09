@@ -324,7 +324,7 @@ class CameraStreamerProcess(WorkerProcess):
                     self._test_steering(0.0)
                     steerFlag = 2
                 '''
-                if passed_time > 15 and steerFlag == 0:
+                if passed_time > 14 and steerFlag == 0:
                     self._send_command(outPs, ['stop'])
                     steerFlag = 1
                 # time.sleep(3)

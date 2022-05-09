@@ -284,10 +284,10 @@ class CameraStreamerProcess(WorkerProcess):
 
                 # Testing intersection crossing
                 # time.sleep(5)
-                time.sleep(5)
+                # time.sleep(5)
                 self._change_steering(0.75)
 
-                time.sleep(20)
+                # time.sleep(20)
                 self._change_steering(0.0)
 
 

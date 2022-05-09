@@ -196,6 +196,8 @@ class CameraStreamerProcess(WorkerProcess):
 
         steerFlag = 0
 
+        self._test_steering(0.2)
+
         timer1 = time.time()
         while True:
             try:

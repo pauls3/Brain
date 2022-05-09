@@ -196,7 +196,9 @@ class CameraStreamerProcess(WorkerProcess):
 
         steerFlag = 0
 
-        self._test_steering(0.2)
+
+
+        
 
         timer1 = time.time()
         while True:
@@ -326,9 +328,18 @@ class CameraStreamerProcess(WorkerProcess):
                     self._test_steering(0.0)
                     steerFlag = 2
                 '''
-                if passed_time > 14 and steerFlag == 0:
-                    self._send_command(outPs, ['stop'])
+
+                
+                # from stop line go straight
+                #   adjusting angle to 0.1 for "straight"
+                if passed_time >= 0 and steerFlag == 0:
+                    self._test_steering(0.1)
                     steerFlag = 1
+
+                if timer2 - timer1 > 12 and steerFlag == 1:
+                    self._send_command(outPs, ['stop'])
+                    steerFlag = 2
+                
                 # time.sleep(3)
                 # self._test_steering(0.0)
 

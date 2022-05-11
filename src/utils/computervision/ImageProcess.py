@@ -157,7 +157,7 @@ class ImageProcess(WorkerProcess):
 
         self._send_command(outPs, ['forward_slow'])
         '''
-        self._send_command(outPs, ['forward_normal'])
+        # self._send_command(outPs, ['forward_normal'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -271,8 +271,8 @@ class ImageProcess(WorkerProcess):
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
                 img_crop = cv2.bitwise_and(image, image, mask=stencil)
                 # convert to grayscale
-                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                # img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # blur
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
                 blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
@@ -311,7 +311,7 @@ class ImageProcess(WorkerProcess):
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                self._change_steering(steering_angle)
+                # self._change_steering(steering_angle)
                 '''
                     end lanekeeping
                 '''

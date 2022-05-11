@@ -62,7 +62,7 @@ Device.pin_factory = PiGPIOFactory('127.0.0.1')
 def nothing(x):
     pass
 
-class CameraStreamerProcess(WorkerProcess):
+class ImageProcess(WorkerProcess):
     
     # ===================================== INIT =========================================
     def __init__(self, inPipes, outPipes):
@@ -78,7 +78,7 @@ class CameraStreamerProcess(WorkerProcess):
         outPs : list(Pipe) 
             List of output pipes (not used at the moment)
         """
-        super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
+        super(ImageProcess,self).__init__(inPipes, outPipes)
         self.HEIGHT = 300
         self.WIDTH = 300
         self.inPs = inPipes[0]
@@ -100,7 +100,7 @@ class CameraStreamerProcess(WorkerProcess):
         """Apply the initializing methods and start the threads.
         """
         #self._init_socket()
-        super(CameraStreamerProcess,self).run()
+        super(ImageProcess,self).run()
 
     # ===================================== INIT THREADS =================================
     def _init_threads(self):

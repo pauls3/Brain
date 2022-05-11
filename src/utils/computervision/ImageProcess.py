@@ -31,27 +31,38 @@ import struct
 import time
 import numpy as np
 import json
+import math
 
 from threading       import Thread
 from threading       import Timer
 from multiprocessing import Pipe
+from multiprocessing import Process
+from multiprocessing import Queue
+
+from sys import getsizeof
+
 
 import cv2
 import matplotlib.pyplot as plt
 
 from src.templates.workerprocess import WorkerProcess
-from src.utils.control.RcBrainThread              import RcBrainThread
+from src.utils.control.RcBrainThread                import RcBrainThread
+
+from src.utils.finitestatemachine.FiniteStateMachine import FiniteStateMachine
+
+from gpiozero import Servo
+from gpiozero import Device
+from gpiozero.pins.pigpio import PiGPIOFactory
+
+Device.pin_factory = PiGPIOFactory('127.0.0.1')
 
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
-import sys
-#np.set_printoptions(threshold=sys.maxsize)
 
-    
 def nothing(x):
     pass
 
-class ImageProcess(WorkerProcess):
+class CameraStreamerProcess(WorkerProcess):
     
     # ===================================== INIT =========================================
     def __init__(self, inPipes, outPipes):
@@ -67,25 +78,29 @@ class ImageProcess(WorkerProcess):
         outPs : list(Pipe) 
             List of output pipes (not used at the moment)
         """
-        super(ImageProcess,self).__init__(inPipes, outPipes)
+        super(CameraStreamerProcess,self).__init__(inPipes, outPipes)
         self.HEIGHT = 300
         self.WIDTH = 300
         self.inPs = inPipes[0]
         #self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
-        #self.outImgPs = outPipes[1]
-        
-        self.rcBrain = RcBrainThread()
+        self.curr_steer_angle = 0.0
 
-        #self.inDetected, self.outImg = Pipe(duplex=False)
+        self.rcBrain = RcBrainThread()
+        self.servo = Servo(12)
+        self.fStateMachine = FiniteStateMachine()
+        self.confThreshold = 0.5
+
+        self.net = cv2.dnn.readNet('../open_vino/ssd_mobilenet/bosch_model_0/saved_model.xml', '../open_vino/ssd_mobilenet/bosch_model_0/saved_model.bin')
+        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
         
-        #self.listener = ObjectDetector([self.inDetected], [self.outImg])
+        
     # ===================================== RUN ==========================================
     def run(self):
         """Apply the initializing methods and start the threads.
         """
         #self._init_socket()
-        super(ImageProcess,self).run()
+        super(CameraStreamerProcess,self).run()
 
     # ===================================== INIT THREADS =================================
     def _init_threads(self):
@@ -97,11 +112,21 @@ class ImageProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='StreamSendingThread',target = self._process_image, args= (self.inPs, self.outPs, ))
+        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
+
     
-    
+
+    # centers car
+    # set state to lane centering
+    # 
+    def _restart_car(self, outPs):
+        self._send_command(outPs, ['forward_normal'])
+        self.fStateMachine.force_restart()
+
+        
+
     
     # ===================================== SEND THREAD ==================================
     def _process_image(self, inP, outPs):
@@ -112,358 +137,316 @@ class ImageProcess(WorkerProcess):
         inP : Pipe
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """        
-        stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))
-        stencil_reg = stencil_reg.astype('uint8')
-        #stencilX = np.zeros((self.HEIGHT, self.WIDTH))
-        #stencilX = stencilX.astype('uint8')
+        
+        cmds = ['pid', 'stop']
+        self._send_command(outPs, cmds)
+
+        timer1 = time.time()
+        while True:
+            timer2 = time.time()
+            if timer2 - timer1 > 3:
+                break
+
+        #self._send_command(outPs, ['forward_normal'])
+        
+        '''timer1 = time.time()
+        while True:
+            timer2 = time.time()
+            if timer2 - timer1 > 10:
+                break
+
+        self._send_command(outPs, ['forward_slow'])
+        '''
+        self._send_command(outPs, ['forward_normal'])
+        
+
+        stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_no_gap = stencil_no_gap.astype('uint8')
+        
+        stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_gap = stencil_gap.astype('uint8')
+        
         # specify coordinates of the polygon
         #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
         #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
         
-        #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
-        #polygon = np.array([[0, 320], [0,220], [320,220], [320, 320]])
-        # *********************
-        #polygon = np.array([[0, 300], [0,220], [300,220], [300, 300]])
-        polygon = np.array([[0, 640], [0,300], [640,300], [640, 640]])
+
+        # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
+        # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
         
-        #polygon = np.array([[0, 640], [0,425], [640,425], [640, 640]])
-        #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
-        cv2.fillConvexPoly(stencil_reg, polygon, 1)
-        #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
-        #poly2 = np.array([[260, 300], [260,140], [320,140], [320, 320]])
+        polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
+        polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
         
-        #poly1 = np.array([[0, 320], [0,275], [60, 275], [70, 320]])
-        #poly2 = np.array([[260, 320], [260,275], [320,275], [320, 320]])
-        #cv2.fillPoly(stencilX, [poly1, poly2], 1)
-        #ii = 0
-        cmdOut = "none"
+        
+        polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
+        cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
+        
+        
+            
                 
-        # Testing parallel parking
-        
-        frameCounter = 0
-        YMAX = 0
-        
-        flag = True
-        
-        stencil = stencil_reg
+        stencil = stencil_gap
         
         winname = 'RebelDynamics'
-        cv2.namedWindow('image')
-        #cv2.moveWindow(image, 0,0)
-        start = 0
-        end = 0
+        cv2.namedWindow(winname)
+        #cv2.moveWindow(winname, 0,0)
+        
 
-        idx = 0
-        
-        
-        #cv2.createTrackbar('Theta', 'image', 1, 360, nothing)
-        
-        '''
-        cv2.createTrackbar('HMin', 'image', 0, 255, nothing)
-        cv2.createTrackbar('SMin', 'image', 0, 255, nothing)
-        cv2.createTrackbar('VMin', 'image', 0, 255, nothing)
-        cv2.createTrackbar('HMax', 'image', 0, 255, nothing)
-        cv2.createTrackbar('SMax', 'image', 0, 255, nothing)
-        cv2.createTrackbar('VMax', 'image', 0, 255, nothing)
-        
-        cv2.setTrackbarPos('HMax', 'image', 255)
-        cv2.setTrackbarPos('SMax', 'image', 255)
-        cv2.setTrackbarPos('VMax', 'image', 255)
-        
-        hMin = sMin = vMin = hMax = sMax = vMax = 0
-        phMin = psMin = pvMin = phMax = psMax = pvMax = 0
-        '''
-        
-        theta = 1
-        pTheta = 0
 
-        iii = 0
-        flag = True
-        while flag:
+        cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
+        
+        thresh0 = thresh1 = hough0 = hough1 =  1
+        Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
+
+        steerFlag = 0
+
+
+        ###########################################
+        # For object detection
+        ###########################################
+        inputQueue = Queue(maxsize=1)
+        outputQueue = Queue(maxsize=1)
+        detectionOut = None
+        print("[INFO] starting process...")
+        p = Process(target=self.classify_frame, args=(self.net,inputQueue,outputQueue,))
+        p.daemon = True
+        p.start()
+        ###########################################
+
+        self.fStateMachine.force_restart()
+        timer1 = time.time()
+        while True:
             try:
+
+                timer2 = time.time()
+                # get image
+                stamps, rawImage = inP.recv()
+                # resize image to 300x300
+                image = cv2.resize(rawImage, (300, 300))
+
+                '''
+                    start object detection
+                '''
+                # if inputqueue is empty, give current image to detector
+                if inputQueue.empty():
+                    inputQueue.put(image)
+                # grab deteciton if the outqueue is not empty
+                if not outputQueue.empty():
+                    detectionOut = outputQueue.out()
                 
-                stamps, image = inP.recv()
+                # check if detections is not empty
+                if detectionOut is not None:
+                    # iterate through detections
+                    for detection in detectionOut:
+                        objID = detection[0]
+                        confidence = detection[1]
+                        xmin = detection[2]
+                        ymin = detection[3]
+                        xmax = detection[4]
+                        ymax = detection[5]
+
+                        # found objects within confidence threshold
+                        if confidence > self.confThreshold:
+                            print('test')
+                
+                '''
+                    end object detection
+                '''
+
+
+
+                '''
+                    Lane keeping
+                '''
+                # convert to rgb
                 rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                cv2.imwrite('/home/pi/Desktop/images/rgb.png', rgb_img)
-                #image = cv2.resize(image, (300, 300))
-                
-                # send to object detection
-                #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                
-                img_crop = cv2.bitwise_and(image, image, mask=stencil)
-                
                 # convert to grayscale
-                gray_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                cv2.imwrite('/home/pi/Desktop/images/gray.png', gray_img)
+                #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-                #img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                img_crop = cv2.bitwise_and(image, image, mask=stencil)
                 # convert to grayscale
-                #img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # blur
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
-                blur_img = cv2.GaussianBlur(gray_img, (5,5), 0)
-                cv2.imwrite('/home/pi/Desktop/images/blur.png', blur_img)
+                blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
                 # get threshold
-                ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
-                cv2.imwrite('/home/pi/Desktop/images/threshold.png', thresh)
-                
+                # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
+                # (199, 170) for plastic ground
+                ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
-                cv2.imwrite('/home/pi/Desktop/images/edges.png', edges)
-                
-                
                 # Sobel
                 #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
                 #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                
-                '''
-                    Straight: Looking for any lines that are ~vertical in RoI
-                    Right: Looking for any lines that are ~horizontal in RoI
-                    Left: Looking for any lines that are ~horizontal in RoI
-                '''
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=100, minLineLength=25)
-                
-                
-                
-                #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 15, maxLineGap=10, minLineLength=180)
-                #lines = cv2.HoughLinesP(edges, 1, np.pi/5, 15, maxLineGap=200)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/hough0, hough1, maxLineGap=200)
                 
                 if lines is not None:
                     for jj in range(0, len(lines)):
                         ll = lines[jj][0]
                         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
-                cv2.imwrite('/home/pi/Desktop/images/lines.png', rgb_img)  
-        
                 
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                 
                 # get lane lines
-                #lane_lines = self._avg_slope_intersect(lines)
+                lane_lines = self._avg_slope_intersect(lines)
                 
+                #frame_objects = rgb_img
                 
                 # draw lines to grayscale image
                 #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                #lane_lines_img, lane_centering_cmds = self._display_lines(img_crop, lane_lines)
-   
+                #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
+                lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
+                self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
+                
+                '''
+                    end lanekeeping
+                '''
+
                 #plt.imshow(lane_lines_img)
                 #plt.show()
-                
-                #out_img = cv2.resize(lane_lines_img, (640, 480))
+                #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
+                #out_img = cv2.resize(lane_lines_img, (640, 640))
                 #cv2.imshow(winname, out_img)
-                #cv2.imshow(winname, lane_lines_img)
+                
+                #for outP in self.outImgPs:
+                # out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
+                # self.outPs.send([self.curr_steer_angle, stopLine])
+                
+
+                thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
+
+                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                    print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                    Pthresh0 = thresh0
+                    Pthresh1 = thresh1
+                    Phough0 = hough0
+                    Phough1 = hough1
+
+
+
+                # print(self.curr_steer_angle, stopLine)
+                #cv2.imshow(winname, rgb_img)
                 #cv2.imshow(winname, edges)
                 #cv2.waitKey(1)
+                # print('image')
+
+
+
+                # Testing intersection crossing
+                # time.sleep(5)
+                # time.sleep(5)
+
+
+
                 
                 
+                passed_time = timer2 - timer1
+                
+                # from stop line to left turn:
+                #     go forward 5 seconds
+                #     make left turn (-0.75) for 8 seconds
+                #     go straight
                 '''
-                hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-                lower = np.array([104,175,53])
-                
-                lower = np.array([104,125,69])
-                
-                lower = np.array([104,101,69])
-                
-                lower = np.array([103,103,25])****
-                upper = np.array([179,255,255])
-                hsv_mask = cv2.inRange(hsv_img, lower, upper)
-                result = cv2.bitwise_and(hsv_img, hsv_img, mask=hsv_mask)
-                
-                cv2.imshow(winname, hsv_mask)
-                cv2.imshow(winname, result)
-                cv2.waitKey(1)
-                '''
-                
-                #image = cv2.resize(image, (320, 320))
-                #rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                '''
-                hMin = cv2.getTrackbarPos('HMin', 'image')
-                sMin = cv2.getTrackbarPos('SMin', 'image')
-                vMin = cv2.getTrackbarPos('VMin', 'image')
-                hMax = cv2.getTrackbarPos('HMax', 'image')
-                sMax = cv2.getTrackbarPos('SMax', 'image')
-                vMax = cv2.getTrackbarPos('VMax', 'image')
-                '''
-                #lower = np.array([hMin, sMin, vMin])
-                #upper = np.array([hMax, sMax, vMax])
-                
-                #lower = np.array([103,103,25])
-                #upper = np.array([179,255,255])
-                
-                #hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-                #hsv_mask = cv2.inRange(hsv, lower, upper)
-                #out_img = cv2.bitwise_and(image, image, mask=hsv_mask)
-                '''
-                if ((phMin != hMin) | (psMin != sMin) | (pvMin != vMin) | (phMax != hMax) | (psMax != sMax) | (pvMax != vMax)):
-                    print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d, sMax = %d, vMax = %d)" % (hMin, sMin, vMin, hMax, sMax, vMax))
-                    phMin = hMin
-                    psMin = sMin
-                    pvMin = vMin
-                    phMax = hMax
-                    psMax = sMax
-                    pvMax = vMax
+                if passed_time > 5 and steerFlag == 0:
+                    self._test_steering(-0.75)
+                    steerFlag = 1
+
+                if timer2 - timer1 > 13 and steerFlag == 1:
+                    self._test_steering(0.0)
+                    steerFlag = 2
                 '''
 
+                # from stop line to right turn:
+                #     go forward 0.5 seconds
+                #     make right turn (0.9) for 11.5 seconds
+                #     go straight
                 '''
-                cnts = cv2.findContours(hsv_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-                
-                right = 0
-                left = 0
-                
-                for c in cnts:
-                    x,y,w,h = cv2.boundingRect(c)
-                    if w >= 4 and h >= 20:
-                        cv2.rectangle(rgb_img, (x,y), (x+w, y+h), (36,255,12), 2)
-                        mid = h // 2
-                        red = yellow = 0
-                        for ii in range(0, 3):
-                            for jj in range(0, 3):
-                                cv2.rectangle(rgb_img, (x + w - ii, y + mid - jj), (x + w - ii, y + mid - jj), (0,0,255), 1)
-                                if hsv_mask[y + mid - jj, x + w - ii] == 0:
-                                    yellow = yellow + 1
-                                else:
-                                    red = red + 1
-                        if yellow > red:
-                            left = left + 1
-                        elif red > yellow:
-                            right = right + 1
+                if passed_time > 0.5 and steerFlag == 0:
+                    self._test_steering(0.9)
+                    steerFlag = 1
 
-                if left > right:
-                    print('left\t', left)
-                elif right > left:
-                    print('right\t', right)
+                if timer2 - timer1 > 12 and steerFlag == 1:
+                    self._test_steering(0.0)
+                    steerFlag = 2
                 '''
-                
-                self._barricade_direction(image)
-                
-                #gaborFilter = self._gabor_filter()
-                #image_filtered = self._apply_filter(image, gaborFilter)
-                
-                #vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,50))
-                #vertical_mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=20)
-                
-                #image[np.where(vertical_mask==255)] = [255,255,255]
-                
 
-                #plt.imshow(hsv_mask)
-                #plt.show()
-                #cv2.imshow('image', rgb_img)
-                #cv2.waitKey(0)
-
-                #frameCounter = (frameCounter + 1) % 5
                 
-                #for outP in outPs:
-                iii = iii + 1
-                #if iii > 10:
-                #    flag = False
+                # from stop line go straight
+                #   adjusting angle to 0.1 for "straight"
+                if passed_time >= 0 and steerFlag == 0:
+                    self._test_steering(0.1)
+                    steerFlag = 1
+
+                if timer2 - timer1 > 12 and steerFlag == 1:
+                    self._send_command(outPs, ['stop'])
+                    steerFlag = 2
+                
+                # time.sleep(3)
+                # self._test_steering(0.0)
+
+
+                                
+
+
+                #self._change_steering(steering_angle)
+                
             except Exception as e:
-                print("CameraStreamer failed to stream images:",e,"\n")
+                print("CameraStreamerProcess failed to stream images:",e,"\n")
                 # Reinitialize the socket for reconnecting to client.  
                 #self.connection = None
                 #self._init_socket()
                 pass
-        
-        
-    def _gabor_filter(self):
-        filters = []
-        num_filters = 16
-        ksize = 35
-        sigma = 3.0
-        lambd = 10.0
-        gamma = 0.5
-        psi = 0
-        for theta in np.arange(0, np.pi, np.pi / num_filters):
-            kernal = cv2.getGaborKernel((ksize, ksize), sigma, theta, lambd, gamma, psi, ktype=cv2.CV_64F)
-            kernal /= 1.0 * kernal.sum()
-            image = cv2.resize(image, (320, 320))
-            filters.append(kernal)
-        return filters
+
+
+
+    def classify_frame(self, net, inputQueue, outputQueue):
+    # keep looping
+        while True:
+            # check to see if there is a frame in our input queue
+            if not inputQueue.empty():
+                # grab the frame from the input queue, resize it, and
+                # construct a blob from it
+                frame = inputQueue.get()
+                # resframe = cv2.resize(frame, (300, 300))
+                blob = cv2.dnn.blobFromImage(frame, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=False, crop=False)
+                net.setInput(blob)
+                out = net.forward()
+
+                data_out = []
+
+                for detection in out.reshape(-1, 7):
+                    inference = []
+                    obj_type = int(detection[1]-1)
+                    confidence = float(detection[2])
+                    xmin = int(detection[3] * frame.shape[1])
+                    ymin = int(detection[4] * frame.shape[0])
+                    xmax = int(detection[5] * frame.shape[1])
+                    ymax = int(detection[6] * frame.shape[0])
+
+                    if confidence > 0: #ignore garbage
+                        inference.extend((obj_type,confidence,xmin,ymin,xmax,ymax))
+                        data_out.append(inference)
+
+                outputQueue.put(data_out)
     
+
+
+
     
-    def _apply_filter(self, img, filters):
-        newImg = np.zeros_like(img)
-        depth = -1
-        for kern in filters:
-            image_filter = cv2.filter2D(img, depth, kern)
-            np.maximum(newImg, image_filter, newImg)
-        return newImg
-
-
-    def _barricade_direction(self, image):
-
-        '''
-            Get bbox coordinates of barricade and enlarge it for error.
-            Crop
-            Enlarge
-            Then figure out direction
-        '''
-
-        image = cv2.resize(image, (320, 320))
-        rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        lower = np.array([103,103,25])
-        upper = np.array([179,255,255])
-        
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        hsv_mask = cv2.inRange(hsv, lower, upper)
-        out_img = cv2.bitwise_and(image, image, mask=hsv_mask)
-
-        cnts = cv2.findContours(hsv_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-        
-        right = 0
-        left = 0
-        
-        flag = True
-        
-        xMax = yMax = -1
-        xMin = yMin = 9000
-        for c in cnts:
-            x,y,w,h = cv2.boundingRect(c)
-            if w >= 4 and h >= 20:
-                if xMax < x + w:
-                    xMax = x + w
-                if xMin > x:
-                    xMin = x
-                if yMax < y + h:
-                    yMax = y + h
-                if yMin > y:
-                    yMin = y
-                
-                
-                cv2.rectangle(rgb_img, (x,y), (x+w, y+h), (36,255,12), 2)
-                mid = h // 2
-                red = yellow = 0
-                for ii in range(0, 3):
-                    for jj in range(0, 3):
-                        cv2.rectangle(rgb_img, (x + w - ii, y + mid - jj), (x + w - ii, y + mid - jj), (0,0,255), 1)
-                        if hsv_mask[y + mid - jj, x + w - ii] == 0:
-                            yellow = yellow + 1
-                        else:
-                            red = red + 1
-                if yellow > red:
-                    left = left + 1
-                elif red > yellow:
-                    right = right + 1
-        
-        if max(left, right) > 1 and (xMax > -1 and yMax > -1 and xMin < 9000 and yMin < 9000):
-            print(yMin, yMax, xMin, xMax)
-            cropped_img = rgb_img[yMin:yMax, xMin:xMax]
-        else:
-            cropped_img = rgb_img
-
-        if left > right:
-            print('left\t', left)
-        elif right > left:
-            print('right\t', right)
             
-        cv2.imshow('image', rgb_img)
-        cv2.waitKey(1)
 
 
     def _avg_slope_intersect(self, lines):
@@ -492,9 +475,8 @@ class ImageProcess(WorkerProcess):
                     
                     if x1 < left_region_boundary and x2 < left_region_boundary and abs(angle) % 90 > 30.0:
                         left_fit.append((slope, intercept))
-                    else:
-                        if x1 > right_region_boundary and x2 > right_region_boundary and abs(angle) % 90 > 30.0:
-                            right_fit.append((slope, intercept))
+                    elif x1 > right_region_boundary and x2 > right_region_boundary and abs(angle) % 90 > 30.0:
+                        right_fit.append((slope, intercept))
                             
         left_fit_average = np.average(left_fit, axis=0)
         if len(left_fit) > 0:
@@ -521,35 +503,37 @@ class ImageProcess(WorkerProcess):
         
         return [[x1, y1, x2, y2]]
 
-        
 
     def _display_lines(self, frame, lines):
         line_img = np.zeros((self.HEIGHT, self.WIDTH, 3))
+        stopLine = False
         if lines is not None:
             for line in lines:
                 for x1, y1, x2, y2 in line:
-                    cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
+                    #cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
                     
-                    if x1 < 0 and x2 > 200 or x1 > 200 and x2 < 0 and self.CURRENT_STATE == 'find_stop_line':
+                    # Checking if stop line is found...
+                    if x1 < 0 and x2 > 300 or x1 > 300 and x2 < 0:
                         # drive for 4 seconds
-                        self.CURRENT_STATE == 'found_stop_line'
-                        
-                        
+                        #self.CURRENT_STATE == 'found_stop_line'
+                        stopLine = True
+                        cv2.line(line_img, (x1, y1), (x2, y2), (255,255,0), 2)
                     else:
                         cv2.line(line_img, (x1, y1), (x2, y2), (0,0,255), 2)
         
         frame = frame.astype('uint8')
         line_img = line_img.astype('uint8')
+        num_lines = 0
         
-        commands = []
+        commands = 90
         ##################
         # draw center line
         ##################
         # Detected 2 lanes
         #print(lines)
         
-        #mid = 100
         mid = int(self.WIDTH / 2)
+        y_offset = int(self.HEIGHT / 2)
         if len(lines) == 2:
             left_x1, _, left_x2, _ = lines[0][0]
             right_x1, _, right_x2, _ = lines[1][0]
@@ -557,35 +541,31 @@ class ImageProcess(WorkerProcess):
             x_offset = (left_x2 + right_x2) / 2
             y_offset = int(self.HEIGHT *  2 / 3)
             
-            
-            #print(left_x1, left_x2, right_x1, right_x2)
-            
+                        
             #check for stop line
             if right_x2 < left_x2 and right_x2 > 150 and right_x2 < 320:
-                #print('one')
+               # print('one')
                 x1, _, x2, _ = lines[1][0]
                 x_offset = int(x2 - x1)
                 #print(x_offset)
                 x_offset = x_offset + mid
-                #y_offset = int(self.HEIGHT / 2)
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (int(mid), self.HEIGHT), (0,255,0), 3)
-                #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
                 overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-                commands = self._steering_cmd(x_offset, )
+                commands = self._steering_cmd(x_offset, y_offset,)
+                num_lines = 2
             elif right_x2 < left_x2 and (right_x2 < 50 and right_x1 > mid) or (right_x2 > 320 and right_x1 < mid):
                 #print('two')
                 x1, _, x2, _ = lines[0][0]
                 x_offset = int(x2 - x1)
                 #print(x_offset)
                 x_offset = x_offset + mid
-                #y_offset = int(self.HEIGHT / 2)
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (int(mid), self.HEIGHT), (0,255,0), 3)
-                #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
                 overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-                commands = self._steering_cmd(x_offset, )
-            
+                commands = self._steering_cmd(x_offset, y_offset,)
+                num_lines = 2
+
             elif abs(left_x1 - right_x1) < 50:
                 #print('three')
                 #mid = int(self.WIDTH / 2)
@@ -594,52 +574,103 @@ class ImageProcess(WorkerProcess):
                 x_offset = int(x2 - x1)
                 
                 x_offset = x_offset + mid
-                #y_offset = int(self.HEIGHT / 2)
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (int(mid), self.HEIGHT), (0,255,0), 3)
-                #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
                 overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-                commands = self._steering_cmd(x_offset, )
+                commands = self._steering_cmd(x_offset, y_offset,)
+                num_lines = 2
             else:
                 #print('four')
                 # draw center line
                 cv2.line(frame, (int(x_offset), int(y_offset)), (mid, self.HEIGHT), (0,255,0), 3)
-                #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
                 overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-                commands = self._steering_cmd(x_offset, )
-        # detected one lane
+                commands = self._steering_cmd(x_offset, y_offset)
+                num_lines = 2
+        ### detected one lane
         elif len(lines) == 1:
             #mid = 100
+            #print('five')
             x1, _, x2, _ = lines[0][0]
             x_offset = int(x2 - x1)
             #print(x_offset)
-            x_offset = x_offset + mid
-            y_offset = int(self.HEIGHT * 2 / 3)
+            #x_offset = x_offset + mid
+            #y_offset = int(self.HEIGHT * 2 / 3)
+            y_offset = self.HEIGHT // 2
+            num_lines = 1
+            
+            #fit = np.polyfit((x1,x2), (320, 320), 1)
+            
             # draw center line
             
+            
+            if x1 < self.WIDTH / 2 and x_offset < self.WIDTH / 2:
+                #x_offset = x_offset + mid
+                x_offset = self.WIDTH - 1
+            if x1 > self.WIDTH / 2 and x_offset > self.WIDTH / 2:
+                #offset = x_offset - mid
+                offset = 0
             
             
             #print(offset, x1, x2)
             
             #if x1 > 320 and x2 < 130:
-                
+            
+            #print(x1, x2, x_offset)
             
             cv2.line(frame, (int(x_offset), int(y_offset)), (mid, self.HEIGHT), (0,255,0), 3)
             #print(self._get_slope(x_offset, y_offset, self.WIDTH/2, self.HEIGHT))
             overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-            commands = self._steering_cmd(x_offset, )
+            commands = self._steering_cmd(x_offset, y_offset)
+            
         # No lanes detected
         else:
             overlay_img = frame
+            x_offset = 0
+            commands = 90
         #cv2.line(frame, (int(x_offset), int(y_offset)), (int(self.WIDTH/2), self.HEIGHT), (0,255,0), 3)
         
         #overlay_img = cv2.addWeighted(frame, 0.8, line_img, 1, 1)
-        return overlay_img, commands
+        #print(x_offset, commands)
+        return overlay_img, commands, num_lines, stopLine
     
+
+
+
+    def stabilize_steering_angle(
+          self,
+          curr_steering_angle, 
+          new_steering_angle, 
+          num_of_lane_lines, 
+          max_angle_deviation_two_lines=5, 
+          max_angle_deviation_one_lane=1):
+        '''
+        Using last steering angle to stabilize the steering angle
+        if new angle is too different from current angle, 
+        only turn by max_angle_deviation degrees
+        '''
+        if num_of_lane_lines == 2 :
+            # if both lane lines detected, then we can deviate more
+            max_angle_deviation = max_angle_deviation_two_lines
+        else :
+            # if only one lane detected, don't deviate too much
+            max_angle_deviation = max_angle_deviation_one_lane
+        
+        angle_deviation = new_steering_angle - curr_steering_angle
+
+        if abs(angle_deviation) > max_angle_deviation:
+            stabilized_steering_angle = int(curr_steering_angle + max_angle_deviation * angle_deviation / abs(angle_deviation))
+        else:
+            stabilized_steering_angle = new_steering_angle
+        #print(new_steering_angle, stabilized_steering_angle)
+        return stabilized_steering_angle
+
+
+
     
-    
-    def _steering_cmd(self, x1):
-        #if x1 <= 110:
+    def _steering_cmd(self, x_offset, y_offset):
+        return int(math.atan(x_offset / y_offset) * 180.0 / math.pi) + 90
+
+        '''
         print(x1)
         if x1 <= 200 and x1 >= 140:
             #return ['forward', 'left', 'left']
@@ -653,7 +684,39 @@ class ImageProcess(WorkerProcess):
             return ['forward', 'rightright']
         else:
             return ['forward', 'straight']
+        '''
+
+
+    def _test_steering(self, angle):
+        print(angle)
+        self.servo.value = angle
     
+    def _change_steering(self, angle):
+        # angle values:
+        #       0-89:   turn left
+        #       90:     center
+        #       90-180: turn right
+        max_angle = 0.75
+        correct_angle = 0
+
+        if angle < 90:
+            calculated_angle = -0.75 * (angle / 90)
+            if calculated_angle < -max_angle:
+                correct_angle = -max_angle
+            else:
+                correct_angle = calculated_angle
+        elif angle > 90:
+            calculated_angle = 0.75 * ((angle - 90)/90)
+            if calculated_angle > max_angle:
+                correct_angle = max_angle
+            else:
+                correct_angle = calculated_angle
+        else:
+            correct_angle = 0
+            
+        #print(angle, correct_angle)
+        
+        self.servo.value = correct_angle
     
     def _get_slope(self, x1, y1, x2, y2):
         x1 = float(x1)
@@ -664,4 +727,25 @@ class ImageProcess(WorkerProcess):
         
         #return (y2 - y1) / (x2 - x1)
         return x1
+    
+
+
+        # ===================================== SEND COMMANDS =================================
+    def _send_command(self, outPs, commands):
+        for cmd in commands:
+            cmd_ =  self.rcBrain.getMessage(cmd)
+            print(cmd_)
+            if cmd_ is not None:
+                encode = json.dumps(cmd_).encode()
+                decode = encode.decode()
+                command = json.loads(decode)
+                #for outP in outPs:
+                for ii in range(0,20):
+                    outPs.send(command)
+            # translated_cmd = self.controller.get_commands(cmd)
+            # print (translated_cmd)
+            # if translated_cmd is not None:
+            #     for ii in range(0,7):
+            #         #for outP in outPs:
+            #         outPs.send(cmd)
     

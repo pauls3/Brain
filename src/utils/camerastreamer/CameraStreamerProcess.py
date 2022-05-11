@@ -43,6 +43,8 @@ import matplotlib.pyplot as plt
 from src.templates.workerprocess import WorkerProcess
 from src.utils.control.RcBrainThread                import RcBrainThread
 
+from src.utils.finitestatemachine.FiniteStateMachine import FiniteStateMachine
+
 from gpiozero import Servo
 from gpiozero import Device
 from gpiozero.pins.pigpio import PiGPIOFactory
@@ -81,6 +83,8 @@ class CameraStreamerProcess(WorkerProcess):
 
         self.rcBrain = RcBrainThread()
         self.servo = Servo(12)
+        self.fStateMachine = FiniteStateMachine()
+
         
         
     # ===================================== RUN ==========================================
@@ -103,6 +107,16 @@ class CameraStreamerProcess(WorkerProcess):
         streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs, ))
         streamTh.daemon = True
         self.threads.append(streamTh)
+
+    
+
+    # centers car
+    # set state to lane centering
+    # 
+    def _restart_car(self, outPs):
+        self._send_command(outPs, ['forward_normal'])
+        self.fStateMachine.force_restart()
+
         
 
     
@@ -138,51 +152,38 @@ class CameraStreamerProcess(WorkerProcess):
         self._send_command(outPs, ['forward_normal'])
         
 
-        stencil_reg = np.zeros((self.HEIGHT, self.WIDTH))
-        stencil_reg = stencil_reg.astype('uint8')
-        #stencilX = np.zeros((self.HEIGHT, self.WIDTH))
-        #stencilX = stencilX.astype('uint8')
+        stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_no_gap = stencil_no_gap.astype('uint8')
+        
+        stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_gap = stencil_gap.astype('uint8')
+        
         # specify coordinates of the polygon
         #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
         #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
         
-        #polygon = np.array([[0, 320], [0,170], [320,170], [320, 320]])
-        #polygon = np.array([[0, 320], [0,150], [320,150], [320, 320]])
-        #polygon = np.array([[0, 640], [0,300], [640,300], [640, 640]])
 
         # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
         # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
-        #polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
-        #polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        #cv2.fillPoly(stencil_reg, [polygon1, polygon2], 1)
-        #polygon = polygon.astype('uint8')
-        #polygon = np.array([[0, 640], [0,425], [640,425], [640, 640]])
-        #polygon = np.array([[0, 320], [0,140], [85, 140], [85, 300], [245, 300], [245,140], [320,140], [320, 320]])
+        
+        polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
+        polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
+        
         
         polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
-        cv2.fillConvexPoly(stencil_reg, polygon, 1)
-        #poly1 = np.array([[0, 320], [0,145], [60, 145], [70, 300]])
-        #poly2 = np.array([[260, 300], [260,140], [320,140], [320, 320]])
+        cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
         
-        #poly1 = np.array([[0, 320], [0,275], [60, 275], [70, 320]])
-        #poly2 = np.array([[260, 320], [260,275], [320,275], [320, 320]])
-        #cv2.fillPoly(stencilX, [poly1, poly2], 1)
-        #ii = 0
         
-                
-        YMAX = 0
             
                 
-        stencil = stencil_reg
+        stencil = stencil_gap
         
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
         #cv2.moveWindow(winname, 0,0)
         
 
-        # time.sleep(5)
-
-        print('_image')
 
         cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
         cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
@@ -192,14 +193,12 @@ class CameraStreamerProcess(WorkerProcess):
         thresh0 = thresh1 = hough0 = hough1 =  1
         Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
 
-        left_turn = []
-
         steerFlag = 0
 
 
 
         
-
+        self.fStateMachine.force_restart()
         timer1 = time.time()
         while True:
             try:
@@ -210,9 +209,13 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 image = cv2.resize(rawImage, (300, 300))
                 # send to object detection
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                
 
+
+                '''
+                    Lane keeping
+                '''
+                # convert to rgb
+                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 # convert to grayscale
                 #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
@@ -258,6 +261,10 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
                 
+                '''
+                    end lanekeeping
+                '''
+
                 #plt.imshow(lane_lines_img)
                 #plt.show()
                 #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
@@ -265,7 +272,7 @@ class CameraStreamerProcess(WorkerProcess):
                 #cv2.imshow(winname, out_img)
                 
                 #for outP in self.outImgPs:
-                out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
+                # out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
                 # self.outPs.send([self.curr_steer_angle, stopLine])
                 
 

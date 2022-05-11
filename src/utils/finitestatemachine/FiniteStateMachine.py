@@ -27,6 +27,11 @@ class FiniteStateMachine:
         self.previousState = self.currentState
         self.currentState = newState
 
+    # resets the state of the car to default state (lane centering)
+    def force_restart(self):
+        self.currentState = 'lane_centering'
+        self.previousState = 'lane_centering'
+
     # ===================================== STATE DICT ===================================
     def _update_state(self, newState):
         """It generates a dictionary with the robot current states. 

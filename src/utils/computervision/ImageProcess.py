@@ -311,7 +311,7 @@ class ImageProcess(WorkerProcess):
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                self._change_steering(steering_angle)
+                # self._change_steering(steering_angle)
                 '''
                     end lanekeeping
                 '''
@@ -364,7 +364,7 @@ class ImageProcess(WorkerProcess):
                 #     go forward 5 seconds
                 #     make left turn (-0.75) for 8 seconds
                 #     go straight
-                '''
+                
                 if passed_time > 5 and steerFlag == 0:
                     self._test_steering(-0.75)
                     steerFlag = 1
@@ -372,7 +372,7 @@ class ImageProcess(WorkerProcess):
                 if timer2 - timer1 > 13 and steerFlag == 1:
                     self._test_steering(0.0)
                     steerFlag = 2
-                '''
+                
 
                 # from stop line to right turn:
                 #     go forward 0.5 seconds

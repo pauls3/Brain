@@ -97,7 +97,6 @@ def main():
     # LocSysProc = LocalisationSystemProcess([], [LocStS])
     # allProcesses.append(LocSysProc)
 
-
     # =============================== CONTROL =================================================
     #if enableRc:
     # rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler

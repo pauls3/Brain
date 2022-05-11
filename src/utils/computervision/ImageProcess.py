@@ -307,7 +307,7 @@ class CameraStreamerProcess(WorkerProcess):
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                
+                #self._change_steering(steering_angle)
                 '''
                     end lanekeeping
                 '''
@@ -386,6 +386,7 @@ class CameraStreamerProcess(WorkerProcess):
                 
                 # from stop line go straight
                 #   adjusting angle to 0.1 for "straight"
+                '''
                 if passed_time >= 0 and steerFlag == 0:
                     self._test_steering(0.1)
                     steerFlag = 1
@@ -393,6 +394,7 @@ class CameraStreamerProcess(WorkerProcess):
                 if timer2 - timer1 > 12 and steerFlag == 1:
                     self._send_command(outPs, ['stop'])
                     steerFlag = 2
+                '''
                 
                 # time.sleep(3)
                 # self._test_steering(0.0)

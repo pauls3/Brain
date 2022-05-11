@@ -292,8 +292,8 @@ class ImageProcess(WorkerProcess):
                 #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
-                # lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                # lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
                 
                 if lines is not None:
                     for jj in range(0, len(lines)):
@@ -314,7 +314,7 @@ class ImageProcess(WorkerProcess):
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                #self._change_steering(steering_angle)
+                self._change_steering(steering_angle)
                 '''
                     end lanekeeping
                 '''
@@ -369,7 +369,7 @@ class ImageProcess(WorkerProcess):
                 #     go straight
                 
 
-                
+                '''
                 if passed_time > 5 and steerFlag == 0:
                     self._test_steering(-0.75)
                     steerFlag = 1
@@ -377,7 +377,7 @@ class ImageProcess(WorkerProcess):
                 if timer2 - timer1 > 14 and steerFlag == 1:
                     self._test_steering(0.0)
                     steerFlag = 2
-                
+               ''' 
 
                 # from stop line to right turn:
                 #     go forward 0.5 seconds

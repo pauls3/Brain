@@ -284,7 +284,7 @@ class ImageProcess(WorkerProcess):
                 # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
                 ## Final Track
                 ret, thresh = cv2.threshold(blur_img, 185, 158, cv2.THRESH_BINARY)
-                ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
+                # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
@@ -414,7 +414,7 @@ class ImageProcess(WorkerProcess):
                                 
 
 
-                self._change_steering(steering_angle)
+                # self._change_steering(steering_angle)
                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

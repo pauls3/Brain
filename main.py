@@ -80,8 +80,8 @@ def main():
 
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
-        streamProc = CameraStreamerProcess([camStR], [rcShS])
-        #streamProc = ImageProcess([camStR], [rcShS])
+        # streamProc = CameraStreamerProcess([camStR], [rcShS])
+        streamProc = ImageProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
         #objDetectorProc = ObjectDetector([inImg], [outDetected])

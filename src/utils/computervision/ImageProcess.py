@@ -414,7 +414,7 @@ class ImageProcess(WorkerProcess):
                                 
 
 
-                # self._change_steering(steering_angle)
+                self._change_steering(steering_angle)
                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

@@ -381,7 +381,7 @@ class ImageProcess(WorkerProcess):
                 #     make right turn (0.9) for 11.5 seconds
                 #     go straight
                 
-                if passed_time > 0.25 and steerFlag == 0:
+                if passed_time > 0.1 and steerFlag == 0:
                     self._test_steering(0.9)
                     steerFlag = 1
 

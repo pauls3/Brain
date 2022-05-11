@@ -285,11 +285,8 @@ class ImageProcess(WorkerProcess):
                 ## Final Track
                 ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
                 # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
-                # get edges
-                # Canny 
+                # get edges using Canny algorithm
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
-                # Sobel
-                #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
                 lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
@@ -502,6 +499,7 @@ class ImageProcess(WorkerProcess):
         return lane_lines
     
     
+
     def _make_points(self, lines):
         slope, intercept = lines
         y1 = self.HEIGHT
@@ -515,6 +513,7 @@ class ImageProcess(WorkerProcess):
         x2 = int(x2)
         
         return [[x1, y1, x2, y2]]
+
 
 
     def _display_lines(self, frame, lines):
@@ -703,13 +702,16 @@ class ImageProcess(WorkerProcess):
     def _test_steering(self, angle):
         print(angle)
         self.servo.value = angle
-    
+
+
+
     def _change_steering(self, angle):
         # angle values:
         #       0-89:   turn left
         #       90:     center
         #       90-180: turn right
-        max_angle = 0.75
+        # max_angle = 0.75
+        max_angle = 0.85
         correct_angle = 0
 
         if angle < 90:

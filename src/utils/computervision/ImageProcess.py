@@ -365,6 +365,8 @@ class ImageProcess(WorkerProcess):
                 #     make left turn (-0.75) for 8 seconds
                 #     go straight
                 
+
+                '''
                 if passed_time > 5 and steerFlag == 0:
                     self._test_steering(-0.75)
                     steerFlag = 1
@@ -372,13 +374,13 @@ class ImageProcess(WorkerProcess):
                 if timer2 - timer1 > 14 and steerFlag == 1:
                     self._test_steering(0.0)
                     steerFlag = 2
-                
+                '''
 
                 # from stop line to right turn:
                 #     go forward 0.5 seconds
                 #     make right turn (0.9) for 11.5 seconds
                 #     go straight
-                '''
+                
                 if passed_time > 0.5 and steerFlag == 0:
                     self._test_steering(0.9)
                     steerFlag = 1
@@ -386,7 +388,7 @@ class ImageProcess(WorkerProcess):
                 if timer2 - timer1 > 12 and steerFlag == 1:
                     self._test_steering(0.0)
                     steerFlag = 2
-                '''
+                
 
                 
                 # from stop line go straight

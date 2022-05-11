@@ -280,8 +280,8 @@ class ImageProcess(WorkerProcess):
                 # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
                 # (199, 170) for plastic ground
                 # 228, 169
-                ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
-                # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
+                # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
+                ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
@@ -289,8 +289,8 @@ class ImageProcess(WorkerProcess):
                 #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                # lines = cv2.HoughLinesP(edges, 1, np.pi/hough0, hough1, maxLineGap=200)
+                # lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
                 
                 if lines is not None:
                     for jj in range(0, len(lines)):

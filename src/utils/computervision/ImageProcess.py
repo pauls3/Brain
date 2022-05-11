@@ -165,6 +165,9 @@ class ImageProcess(WorkerProcess):
         
         stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_gap = stencil_gap.astype('uint8')
+
+        stencil_gap_prime = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_gap_prime = stencil_gap_prime.astype('uint8')
         
         # specify coordinates of the polygon
         #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
@@ -177,6 +180,10 @@ class ImageProcess(WorkerProcess):
         polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
         polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
         cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
+
+        polygon3 = np.array([[90, 300], [90, 150], [180, 150], [180, 300]])
+        polygon4 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        cv2.fillPoly(stencil_gap_prime, [polygon1, polygon2], 1)
         
         
         polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
@@ -186,6 +193,7 @@ class ImageProcess(WorkerProcess):
             
                 
         stencil = stencil_gap
+        stencil_prime = stencil_gap_prime
         
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
@@ -228,6 +236,13 @@ class ImageProcess(WorkerProcess):
                 stamps, rawImage = inP.recv()
                 # resize image to 300x300
                 image = cv2.resize(rawImage, (300, 300))
+                
+                '''
+                    Testing reading image from file
+                    Need to provide path to file
+                '''
+                #image = cv2.imread('path/to/file/...')
+                #image = cv2.resize(rawImage, (300, 300))
 
                 '''
                     start object detection
@@ -269,39 +284,53 @@ class ImageProcess(WorkerProcess):
                 #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # crop with mask
                 #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-                img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                # img_crop = cv2.bitwise_and(image, image, mask=stencil)
                 # convert to grayscale
-                img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                # img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 # blur
                 #blur_img = cv2.blur(img_crop_gray, (10,10))
                 blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
                 # get threshold
-                # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
                 # (199, 170) for plastic ground
-                # 228, 169
                 ## Test track
                 # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
-                ## Final Track
+                ## Final Track (afternoon)
                 ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
+                '''
+                    Commented line is used to adjust parameters during testing!
+                '''
                 # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges using Canny algorithm
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
                 
-                # get lines
-                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                # Crop image for lane detection
+                cropped_lane_detection = cv2.bitwise_and(edges, edges, mask=stencil)
+
+                # Crop image for stop-line detection
+                cropped_stop_line = cv2.bitwise_and(edges, edges, mask=stencil_prime)
+
+                # get lines for lane detection
+                lane_detection_lines = cv2.HoughLinesP(cropped_lane_detection, 1, np.pi/180, 25, maxLineGap=200)
+                '''
+                    Commented line is used to adjust parameters during testing!
+                '''
                 # lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
                 
-                if lines is not None:
-                    for jj in range(0, len(lines)):
-                        ll = lines[jj][0]
-                        cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
+
+                # get lines for lane detection
+                stop_line_detections = cv2.HoughLinesP(lane_detection_lines, 1, np.pi/180, 25, maxLineGap=10)
+
+                # if lines is not None:
+                #     for jj in range(0, len(lines)):
+                #         ll = lines[jj][0]
+                #         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
                 
                 # convert to rgb
                 #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                 
                 # get lane lines
-                lane_lines = self._avg_slope_intersect(lines)
+                lane_lines = self._avg_slope_intersect(lane_detection_lines)
                 
                 #frame_objects = rgb_img
                 
@@ -349,15 +378,6 @@ class ImageProcess(WorkerProcess):
                 # print('image')
 
 
-
-                # Testing intersection crossing
-                # time.sleep(5)
-                # time.sleep(5)
-
-
-
-                
-                
                 passed_time = timer2 - timer1
                 
                 # from stop line to left turn:
@@ -403,16 +423,11 @@ class ImageProcess(WorkerProcess):
                     self._send_command(outPs, ['stop'])
                     steerFlag = 2
                 '''
+
+
                 
-                # time.sleep(3)
-                # self._test_steering(0.0)
 
-
-                                
-
-
-                # self._change_steering(steering_angle)
-                
+                                                
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")
                 # Reinitialize the socket for reconnecting to client.  
@@ -420,6 +435,32 @@ class ImageProcess(WorkerProcess):
                 #self._init_socket()
                 pass
 
+
+
+    # Function for car to make a right turn at an intersection
+    def _right_turn(self):
+        print('right turn')
+
+    # Function for car to make a left turn at an intersection
+    def _left_turn(self):
+        print('left turn')
+    
+    # Function for car to go straight ahead at an intersection
+    def _straight_ahead(self):
+        print('straight ahead')
+
+    # Function for car to look for a stopline
+    def _find_stopline(self):
+        print('found stopline')
+
+    # Function for car to look for crosswalk lines 
+    def _find_crosswalk(self):
+        print('found crosswalk')
+
+    # Classifying traffic light color (red or green)
+    # try finding average or convert to grayscale and get intensity?
+    def _traffic_light_classification(self):
+        print('classifying traffic light color')
 
 
     def classify_frame(self, net, inputQueue, outputQueue):

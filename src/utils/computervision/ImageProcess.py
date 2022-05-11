@@ -399,7 +399,7 @@ class ImageProcess(WorkerProcess):
                     self._test_steering(0.1)
                     steerFlag = 1
 
-                if timer2 - timer1 > 12 and steerFlag == 1:
+                if timer2 - timer1 > 11 and steerFlag == 1:
                     self._send_command(outPs, ['stop'])
                     steerFlag = 2
                 

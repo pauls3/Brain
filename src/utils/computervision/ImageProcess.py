@@ -157,7 +157,7 @@ class ImageProcess(WorkerProcess):
 
         self._send_command(outPs, ['forward_slow'])
         '''
-        self._send_command(outPs, ['forward_normal'])
+        #self._send_command(outPs, ['forward_normal'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -338,9 +338,10 @@ class ImageProcess(WorkerProcess):
 
 
                 # print(self.curr_steer_angle, stopLine)
-                #cv2.imshow(winname, rgb_img)
+                # cv2.imshow(winname, rgb_img)
+                cv2.imshow(winname, thresh)
                 #cv2.imshow(winname, edges)
-                #cv2.waitKey(1)
+                cv2.waitKey(1)
                 # print('image')
 
 

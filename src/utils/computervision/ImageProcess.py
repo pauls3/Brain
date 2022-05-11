@@ -342,8 +342,8 @@ class ImageProcess(WorkerProcess):
 
 
                 # print(self.curr_steer_angle, stopLine)
-                cv2.imshow(winname, rgb_img)
-                # cv2.imshow(winname, thresh)
+                # cv2.imshow(winname, rgb_img)
+                cv2.imshow(winname, thresh)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 # print('image')

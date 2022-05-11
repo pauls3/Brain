@@ -157,7 +157,7 @@ class ImageProcess(WorkerProcess):
 
         self._send_command(outPs, ['forward_slow'])
         '''
-        #self._send_command(outPs, ['forward_normal'])
+        self._send_command(outPs, ['forward_normal'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -279,7 +279,9 @@ class ImageProcess(WorkerProcess):
                 # get threshold
                 # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
                 # (199, 170) for plastic ground
-                ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
+                # 228, 169
+                ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
+                # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
                 edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
@@ -406,7 +408,7 @@ class ImageProcess(WorkerProcess):
                                 
 
 
-                #self._change_steering(steering_angle)
+                self._change_steering(steering_angle)
                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

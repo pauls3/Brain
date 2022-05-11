@@ -283,7 +283,7 @@ class ImageProcess(WorkerProcess):
                 ## Test track
                 # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
                 ## Final Track
-                ret, thresh = cv2.threshold(blur_img, 185, 158, cv2.THRESH_BINARY)
+                ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
                 # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
@@ -346,9 +346,9 @@ class ImageProcess(WorkerProcess):
 
                 # print(self.curr_steer_angle, stopLine)
                 # cv2.imshow(winname, rgb_img)
-                cv2.imshow(winname, thresh)
+                # cv2.imshow(winname, thresh)
                 #cv2.imshow(winname, edges)
-                cv2.waitKey(1)
+                # cv2.waitKey(1)
                 # print('image')
 
 

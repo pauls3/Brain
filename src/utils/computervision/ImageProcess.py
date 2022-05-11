@@ -289,8 +289,8 @@ class ImageProcess(WorkerProcess):
                 #edges = np.uint8(cv2.Sobel(src=thresh, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5))
                 
                 # get lines
-                #lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
-                lines = cv2.HoughLinesP(edges, 1, np.pi/hough0, hough1, maxLineGap=200)
+                lines = cv2.HoughLinesP(edges, 1, np.pi/180, 25, maxLineGap=200)
+                # lines = cv2.HoughLinesP(edges, 1, np.pi/hough0, hough1, maxLineGap=200)
                 
                 if lines is not None:
                     for jj in range(0, len(lines)):
@@ -310,7 +310,7 @@ class ImageProcess(WorkerProcess):
                 #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
-                self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
+                # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
                 self._change_steering(steering_angle)
                 '''
                     end lanekeeping
@@ -342,8 +342,8 @@ class ImageProcess(WorkerProcess):
 
 
                 # print(self.curr_steer_angle, stopLine)
-                # cv2.imshow(winname, rgb_img)
-                cv2.imshow(winname, thresh)
+                cv2.imshow(winname, rgb_img)
+                # cv2.imshow(winname, thresh)
                 #cv2.imshow(winname, edges)
                 cv2.waitKey(1)
                 # print('image')
@@ -408,7 +408,7 @@ class ImageProcess(WorkerProcess):
                                 
 
 
-                self._change_steering(steering_angle)
+                # self._change_steering(steering_angle)
                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

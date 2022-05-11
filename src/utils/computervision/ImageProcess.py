@@ -147,7 +147,7 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 3:
                 break
 
-        #self._send_command(outPs, ['forward_normal'])
+        self._send_command(outPs, ['forward_normal'])
         
         '''timer1 = time.time()
         while True:
@@ -280,7 +280,10 @@ class ImageProcess(WorkerProcess):
                 # ret, thresh = cv2.threshold(blur_img, 110, 170, cv2.THRESH_BINARY)
                 # (199, 170) for plastic ground
                 # 228, 169
+                ## Test track
                 # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
+                ## Final Track
+                ret, thresh = cv2.threshold(blur_img, 185, 158, cv2.THRESH_BINARY)
                 ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
                 # get edges
                 # Canny 
@@ -311,7 +314,7 @@ class ImageProcess(WorkerProcess):
                 lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                 
                 # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                # self._change_steering(steering_angle)
+                self._change_steering(steering_angle)
                 '''
                     end lanekeeping
                 '''

@@ -365,6 +365,23 @@ class ImageProcess(WorkerProcess):
                     
                     # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
                     # self._change_steering(steering_angle)
+
+
+
+                    cv2.imshow(winname, thresh)
+                    cv2.waitKey(1)
+
+                    thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                    thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                    hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                    hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
+
+                    if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                        print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                        Pthresh0 = thresh0
+                        Pthresh1 = thresh1
+                        Phough0 = hough0
+                        Phough1 = hough1
                     '''
                         end lanekeeping
                     '''
@@ -382,25 +399,20 @@ class ImageProcess(WorkerProcess):
                 #out_img = cv2.resize(lane_lines_img, (640, 640))
                 #cv2.imshow(winname, out_img)
 
-                cv2.imshow(winname, thresh)
-                cv2.waitKey(1)
-                
-                #for outP in self.outImgPs:
-                # out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
-                # self.outPs.send([self.curr_steer_angle, stopLine])
-                
+                # cv2.imshow(winname, thresh)
+                # cv2.waitKey(1)
 
-                thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
-                thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
-                hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
-                hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
+                # thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                # thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                # hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                # hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
 
-                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
-                    print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
-                    Pthresh0 = thresh0
-                    Pthresh1 = thresh1
-                    Phough0 = hough0
-                    Phough1 = hough1
+                # if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                #     print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                #     Pthresh0 = thresh0
+                #     Pthresh1 = thresh1
+                #     Phough0 = hough0
+                #     Phough1 = hough1
 
 
 

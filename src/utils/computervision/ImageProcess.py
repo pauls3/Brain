@@ -706,11 +706,11 @@ class ImageProcess(WorkerProcess):
                 steerFlag = 2
 
             if timer2 - timer1 > 13 and steerFlag == 2:
-                self._test_steering(0.1)
+                self._test_steering(-0.75)
                 steerFlag = 3
             
-            if timer2 - timer1 > 16 and steerFlag == 3:
-                self._test_steering(-0.75)
+            if timer2 - timer1 > 15 and steerFlag == 3:
+                self._test_steering(0.1)
                 flag = False
                 self._send_command(outPs, cmds)
 

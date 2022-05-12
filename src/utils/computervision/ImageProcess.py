@@ -307,11 +307,11 @@ class ImageProcess(WorkerProcess):
                     ## Test track
                     # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
                     ## Final Track (afternoon)
-                    ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
+                    # ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
                     '''
                         Commented line is used to adjust parameters during testing!
                     '''
-                    # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
+                    ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
 
 
                     '''

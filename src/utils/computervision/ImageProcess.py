@@ -219,13 +219,13 @@ class ImageProcess(WorkerProcess):
         # For object detection
         ###########################################
         
-        inputQueue = Queue(maxsize=1)
-        outputQueue = Queue(maxsize=1)
-        detectionOut = None
-        print("[INFO] starting process...")
-        p = Process(target=self.classify_frame, args=(self.net,inputQueue,outputQueue,))
-        p.daemon = True
-        p.start()
+        # inputQueue = Queue(maxsize=1)
+        # outputQueue = Queue(maxsize=1)
+        # detectionOut = None
+        # print("[INFO] starting process...")
+        # p = Process(target=self.classify_frame, args=(self.net,inputQueue,outputQueue,))
+        # p.daemon = True
+        # p.start()
         
         ###########################################
 

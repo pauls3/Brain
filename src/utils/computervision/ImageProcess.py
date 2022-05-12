@@ -259,26 +259,27 @@ class ImageProcess(WorkerProcess):
                 '''
                     start object detection
                 '''
-                # self.detected = []
-                # detections = inDetections.recv()
-                # print('test0')
-                # if detections is not None:
-                #     for detection in detections:
-                #         objID = detection[0]
-                #         confidence = detection[1]
-                #         xmin = detection[2]
-                #         ymin = detection[3]
-                #         xmax = detection[4]
-                #         ymax = detection[5]
+                self.detected = []
+                detections = inDetections.recv()
+                print('test0')
+                if detections is not None:
+                    for detection in detections:
+                        objID = detection[0]
+                        confidence = detection[1]
+                        xmin = detection[2]
+                        ymin = detection[3]
+                        xmax = detection[4]
+                        ymax = detection[5]
                         
-                #         if confidence >= self.confThreshold:
-                #             self.detected.append(detection)
+                        if confidence >= self.confThreshold:
+                            self.detected.append(detection)
+                            print(objID)
                         
-                #         # car found
-                #         if objID == 0:
-                #             # Need to estimate where car is (look for bottom)
-                #             # self._overtake(outPs)
-                #             print('found car')
+                        # car found
+                        if objID == 0:
+                            # Need to estimate where car is (look for bottom)
+                            # self._overtake(outPs)
+                            print('found car')
                 '''
                     end object detection
                 '''
@@ -289,7 +290,6 @@ class ImageProcess(WorkerProcess):
                     Lane keeping
                 '''
                 if self.state == 'lane_keeping':
-                    print('test1')
                     # self._lane_keeping(image)
                     # convert to rgb
                     rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

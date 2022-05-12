@@ -142,10 +142,7 @@ class ObjectDetection(WorkerProcess):
 
         while True:
             try:
-                print('***')
-
                 if not inputQueue.empty():
-                    print(1)
                     frame = inputQueue.get()
                     resframe = cv2.resize(frame, (300, 300))
                     blob = cv2.dnn.blobFromImage(resframe, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=True, crop=False)
@@ -165,11 +162,9 @@ class ObjectDetection(WorkerProcess):
                     if confidence > 0: #ignore garbage
                         inference.extend((obj_type,confidence,xmin,ymin,xmax,ymax))
                         data_out.append(inference)
-                        print(data_out)
 
                     outputQueue.put(data_out)
                 else:
-                    print(2)
         
 
                     stamp, image = inP.recv()
@@ -178,23 +173,18 @@ class ObjectDetection(WorkerProcess):
                     if image is not None:
                         inputQueue.put(image)
 
-                    print("2...")
 
                 
                 if not outputQueue.empty():
-                    print(3)
                     out = outputQueue.get()
                     '''
                         output the detections
                     '''
                     #for outP in outPs:
                     outPs.send(out)
-                    print(out)
 
-                print(4)
                 # if image is not None:
                 stamp, image = inP.recv()
-                print(5)
                 # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
                 

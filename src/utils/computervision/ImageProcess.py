@@ -218,6 +218,18 @@ class ImageProcess(WorkerProcess):
         ###########################################
         # For object detection
         ###########################################
+
+        # Load the model
+        print('Loading model')
+        xml_path = '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.xml'
+        bin_path = '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.bin'
+        labels_file = '/home/pi/repos/Brain/src/utils/openvino/labels.txt'
+        net = cv2.dnn.readNet(xml_path, bin_path)
+
+        # Specify target device
+        net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+
+        print('Loaded model!')
         
         inputQueue = Queue(maxsize=1)
         outputQueue = Queue(maxsize=1)
@@ -247,7 +259,7 @@ class ImageProcess(WorkerProcess):
                 image = cv2.resize(rawImage, (300, 300))
 
 
-                outFrame.send(image)
+                # outFrame.send(image)
                 
                 '''
                     Testing reading image from file

@@ -90,7 +90,7 @@ class EnvironmentalHandler(Thread):
 
 if __name__ == '__main__':
     beacon = 23456
-    id = 120
+    id = 117
     serverpublickey = 'RebelDynamics.pem'
     clientprivatekey = 'privatecKey_client.pem'
     

@@ -205,10 +205,10 @@ class ImageProcess(WorkerProcess):
         
 
 
-        cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
+        cv2.createTrackbar('Thresh0', winname, 0, 255, nothing)
+        cv2.createTrackbar('Thresh1', winname, 0, 255, nothing)
+        cv2.createTrackbar('HoughLines', winname, 0, 255, nothing)
+        cv2.createTrackbar('HoughGap', winname, 1, 255, nothing)
         
         thresh0 = thresh1 = hough0 = hough1 =  1
         Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
@@ -381,6 +381,9 @@ class ImageProcess(WorkerProcess):
                 #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
                 #out_img = cv2.resize(lane_lines_img, (640, 640))
                 #cv2.imshow(winname, out_img)
+
+                cv2.imshow(winname, thresh)
+                cv2.waitKey(1)
                 
                 #for outP in self.outImgPs:
                 # out_arry = [lane_lines_img, self.curr_steer_angle, stopLine]
@@ -403,56 +406,14 @@ class ImageProcess(WorkerProcess):
 
                 # print(self.curr_steer_angle, stopLine)
                 # cv2.imshow(winname, rgb_img)
-                cv2.imshow(winname, thresh)
+                # cv2.imshow(winname, thresh)
                 #cv2.imshow(winname, edges)
-                cv2.waitKey(1)
+                # cv2.waitKey(1)
                 # print('image')
 
 
                 passed_time = timer2 - timer1
                 
-                # from stop line to left turn:
-                #     go forward 5 seconds
-                #     make left turn (-0.75) for 8 seconds
-                #     go straight
-                
-                '''
-                if passed_time > 5 and steerFlag == 0:
-                    self._test_steering(-0.75)
-                    steerFlag = 1
-
-                if timer2 - timer1 > 14 and steerFlag == 1:
-                    self._test_steering(0.0)
-                    steerFlag = 2
-               ''' 
-
-                # from stop line to right turn:
-                #     go forward 0.5 seconds
-                #     make right turn (0.9) for 11.5 seconds
-                #     go straight
-                
-                '''
-                if passed_time > 0.1 and steerFlag == 0:
-                    self._test_steering(0.9)
-                    steerFlag = 1
-
-                if timer2 - timer1 > 12 and steerFlag == 1:
-                    self._test_steering(0.0)
-                    steerFlag = 2
-                '''
-
-                
-                # from stop line go straight
-                #   adjusting angle to 0.1 for "straight"
-                '''
-                if passed_time >= 0 and steerFlag == 0:
-                    self._test_steering(0.1)
-                    steerFlag = 1
-
-                if timer2 - timer1 > 11 and steerFlag == 1:
-                    self._send_command(outPs, ['stop'])
-                    steerFlag = 2
-                '''
                                                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")

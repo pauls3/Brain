@@ -69,6 +69,7 @@ def main():
     # =============================== HARDWARE ===============================================
     if enableStream:
         camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
+        imgStR, imgStS = Pipe(duplex = False)
 
         '''if enableCameraSpoof:
             camSpoofer = CameraSpooferProcess([],[camStS],'vid')
@@ -81,11 +82,11 @@ def main():
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         # streamProc = CameraStreamerProcess([camStR], [rcShS])
-        streamProc = ImageProcess([camStR], [rcShS])
+        streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
         allProcesses.append(streamProc)
         
 
-        # objDetectorProc = ObjectDetection([camStR], [outDetected])
+        # objDetectorProc = ObjectDetection([imgStR], [outDetected])
         # allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================

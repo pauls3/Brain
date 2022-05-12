@@ -164,40 +164,40 @@ class ImageProcess(WorkerProcess):
         # self._send_command(outPs, ['forward_normal'])
         
 
-        # stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
-        # stencil_no_gap = stencil_no_gap.astype('uint8')
+        stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_no_gap = stencil_no_gap.astype('uint8')
         
-        # stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
-        # stencil_gap = stencil_gap.astype('uint8')
+        stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_gap = stencil_gap.astype('uint8')
 
-        # stencil_gap_prime = np.zeros((self.HEIGHT, self.WIDTH))
-        # stencil_gap_prime = stencil_gap_prime.astype('uint8')
+        stencil_gap_prime = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_gap_prime = stencil_gap_prime.astype('uint8')
         
-        # # specify coordinates of the polygon
-        # #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
-        # #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
+        # specify coordinates of the polygon
+        #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
+        #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
         
 
-        # # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
-        # # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
+        # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
+        # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
         
-        # polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
-        # polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        # cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
+        polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
+        polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
 
-        # polygon3 = np.array([[90, 300], [90, 150], [180, 150], [180, 300]])
-        # polygon4 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        # cv2.fillPoly(stencil_gap_prime, [polygon3, polygon4], 1)
+        polygon3 = np.array([[90, 300], [90, 150], [180, 150], [180, 300]])
+        polygon4 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        cv2.fillPoly(stencil_gap_prime, [polygon3, polygon4], 1)
         
         
-        # polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
-        # cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
+        polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
+        cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
         
         
             
                 
-        # stencil = stencil_gap
-        # stencil_prime = stencil_gap_prime
+        stencil = stencil_gap
+        stencil_prime = stencil_gap_prime
         
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
@@ -480,7 +480,7 @@ class ImageProcess(WorkerProcess):
         Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_no_gap = stencil_no_gap.astype('uint8')
-        
+
         if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
             print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
             Pthresh0 = thresh0

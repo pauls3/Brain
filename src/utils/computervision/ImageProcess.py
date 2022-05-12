@@ -90,6 +90,8 @@ class ImageProcess(WorkerProcess):
         self.servo = Servo(12)
         self.fStateMachine = FiniteStateMachine()
         self.confThreshold = 0.5
+        self.state = 'lane_keeping'
+        self.previousState = 'lane_keeping'
 
         # self.net = cv2.dnn.readNet('../open_vino/ssd_mobilenet/bosch_model_0/saved_model.xml', '../open_vino/ssd_mobilenet/bosch_model_0/saved_model.bin')
         # self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
@@ -183,7 +185,7 @@ class ImageProcess(WorkerProcess):
 
         polygon3 = np.array([[90, 300], [90, 150], [180, 150], [180, 300]])
         polygon4 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        cv2.fillPoly(stencil_gap_prime, [polygon1, polygon2], 1)
+        cv2.fillPoly(stencil_gap_prime, [polygon3, polygon4], 1)
         
         
         polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
@@ -278,72 +280,86 @@ class ImageProcess(WorkerProcess):
                 '''
                     Lane keeping
                 '''
-                # convert to rgb
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                # convert to grayscale
-                #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                # crop with mask
-                #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-                # img_crop = cv2.bitwise_and(image, image, mask=stencil)
-                # convert to grayscale
-                # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                # blur
-                #blur_img = cv2.blur(img_crop_gray, (10,10))
-                blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
-                # get threshold
-                # (199, 170) for plastic ground
-                ## Test track
-                # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
-                ## Final Track (afternoon)
-                ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
-                '''
-                    Commented line is used to adjust parameters during testing!
-                '''
-                # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
-                # get edges using Canny algorithm
-                edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
-                
-                # Crop image for lane detection
-                cropped_lane_detection = cv2.bitwise_and(edges, edges, mask=stencil)
+                if self.state == 'lane_keeping':
+                    # convert to rgb
+                    rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    # convert to grayscale
+                    #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                    # crop with mask
+                    #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
+                    # img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                    # convert to grayscale
+                    # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                    img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                    # blur
+                    #blur_img = cv2.blur(img_crop_gray, (10,10))
+                    blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
+                    # get threshold
+                    # (199, 170) for plastic ground
+                    ## Test track
+                    # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
+                    ## Final Track (afternoon)
+                    ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
+                    '''
+                        Commented line is used to adjust parameters during testing!
+                    '''
+                    # ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
 
-                # Crop image for stop-line detection
-                cropped_stop_line = cv2.bitwise_and(edges, edges, mask=stencil_prime)
 
-                # get lines for lane detection
-                lane_detection_lines = cv2.HoughLinesP(cropped_lane_detection, 1, np.pi/180, 25, maxLineGap=200)
-                '''
-                    Commented line is used to adjust parameters during testing!
-                '''
-                # lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
-                
+                    '''
+                        Looking for stopline (intersection!)
+                    '''
 
-                # get lines for lane detection
-                stop_line_detections = cv2.HoughLinesP(lane_detection_lines, 1, np.pi/180, 25, maxLineGap=10)
+                    if self._find_stopline():
+                        self.state = 'at_intersection'
 
-                # if lines is not None:
-                #     for jj in range(0, len(lines)):
-                #         ll = lines[jj][0]
-                #         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
-                
-                # convert to rgb
-                #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
-                
-                # get lane lines
-                lane_lines = self._avg_slope_intersect(lane_detection_lines)
-                
-                #frame_objects = rgb_img
-                
-                # draw lines to grayscale image
-                #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
-                lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
-                
-                # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                self._change_steering(steering_angle)
+
+                    # get edges using Canny algorithm
+                    edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+                    
+                    # Crop image for lane detection
+                    cropped_lane_detection = cv2.bitwise_and(edges, edges, mask=stencil)
+
+                    # Crop image for stop-line detection
+                    cropped_stop_line = cv2.bitwise_and(edges, edges, mask=stencil_prime)
+
+                    # get lines for lane detection
+                    lane_detection_lines = cv2.HoughLinesP(cropped_lane_detection, 1, np.pi/180, 25, maxLineGap=200)
+                    '''
+                        Commented line is used to adjust parameters during testing!
+                    '''
+                    # lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
+                    
+
+                    # get lines for lane detection
+                    # stop_line_detections = cv2.HoughLinesP(lane_detection_lines, 1, np.pi/180, 25, maxLineGap=10)
+
+                    # if lines is not None:
+                    #     for jj in range(0, len(lines)):
+                    #         ll = lines[jj][0]
+                    #         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
+                    
+                    # convert to rgb
+                    #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
+                    
+                    # get lane lines
+                    lane_lines = self._avg_slope_intersect(lane_detection_lines)
+                    
+                    #frame_objects = rgb_img
+                    
+                    # draw lines to grayscale image
+                    #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
+                    #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
+                    lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
+                    
+                    # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
+                    self._change_steering(steering_angle)
                 '''
                     end lanekeeping
                 '''
+
+                
+
 
                 #plt.imshow(lane_lines_img)
                 #plt.show()
@@ -385,7 +401,6 @@ class ImageProcess(WorkerProcess):
                 #     make left turn (-0.75) for 8 seconds
                 #     go straight
                 
-
                 '''
                 if passed_time > 5 and steerFlag == 0:
                     self._test_steering(-0.75)
@@ -450,18 +465,31 @@ class ImageProcess(WorkerProcess):
         # expecting frame to be:
         #   grayscale -> threshold
 
-        kernel_horizontal = np.ones((1, 25), dtype=np.uint8)
-        erode = cv2.erode(thresh, kernel_horizontal)
+        y = 140
+        h = 140
+        x = 0
+        w = 300
 
-        edges = cv2.Canny(image=erode, threshold1=100, threshold2=200)    
+        img_crop = thresh[y:y+h, x:x+w]
+
+        kernel_horizontal = np.ones((1, 25), dtype=np.uint8)
+        erode = cv2.erode(img_crop, kernel_horizontal)
+
+        # edges = cv2.Canny(image=erode, threshold1=100, threshold2=200)    
         minLineLength = 150
         maxLineGap = 5
         lines = cv2.HoughLinesP(erode,1,np.pi/180,25,minLineLength,maxLineGap)
         if lines is not None:
-
-            # for x1,y1,x2,y2 in lines[0]:
+            sum = 0
+            count = 0
+            for x1,y1,x2,y2 in lines[0]:
+                sum = sum +  y1 + y2
+                count = count + 2
+            avg = sum / count
+            if avg >= 160:
             #     cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
-            print('found stopline')
+                print('found stopline')
+                return True
 
     # Function for car to look for crosswalk lines 
     def _find_crosswalk(self):

@@ -95,8 +95,8 @@ class ImageProcess(WorkerProcess):
         self.turns = [] # the set path for the intersection turns
         self.current_turn_index = 0
 
-        self.net = cv2.dnn.readNet('/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.xml', '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.bin')
-        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+        # self.net = cv2.dnn.readNet('/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.xml', '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.bin')
+        # self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
         
         
     # ===================================== RUN ==========================================
@@ -256,27 +256,27 @@ class ImageProcess(WorkerProcess):
                 '''
                     start object detection
                 '''
-                # if inputqueue is empty, give current image to detector
-                if inputQueue.empty():
-                    inputQueue.put(image)
-                # grab deteciton if the outqueue is not empty
-                if not outputQueue.empty():
-                    detectionOut = outputQueue.out()
+                # # if inputqueue is empty, give current image to detector
+                # if inputQueue.empty():
+                #     inputQueue.put(image)
+                # # grab deteciton if the outqueue is not empty
+                # if not outputQueue.empty():
+                #     detectionOut = outputQueue.out()
                 
-                # check if detections is not empty
-                if detectionOut is not None:
-                    # iterate through detections
-                    for detection in detectionOut:
-                        objID = detection[0]
-                        confidence = detection[1]
-                        xmin = detection[2]
-                        ymin = detection[3]
-                        xmax = detection[4]
-                        ymax = detection[5]
+                # # check if detections is not empty
+                # if detectionOut is not None:
+                #     # iterate through detections
+                #     for detection in detectionOut:
+                #         objID = detection[0]
+                #         confidence = detection[1]
+                #         xmin = detection[2]
+                #         ymin = detection[3]
+                #         xmax = detection[4]
+                #         ymax = detection[5]
 
-                        # found objects within confidence threshold
-                        if confidence > self.confThreshold:
-                            print('test')
+                #         # found objects within confidence threshold
+                #         if confidence > self.confThreshold:
+                #             print('test')
                 
                 '''
                     end object detection

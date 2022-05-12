@@ -84,11 +84,9 @@ def main():
         streamProc = ImageProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
-        #objDetectorProc = ObjectDetector([inImg], [outDetected])
 
-
-        # objDetectorProc = ObjectDetection([camStR], [outDetected])
-        # allProcesses.append(objDetectorProc)
+        objDetectorProc = ObjectDetection([camStR], [outDetected])
+        allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================
     #LocSys client process

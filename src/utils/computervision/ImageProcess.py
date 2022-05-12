@@ -213,7 +213,6 @@ class ImageProcess(WorkerProcess):
         thresh0 = thresh1 = hough0 = hough1 =  1
         Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
 
-        steerFlag = 0
 
 
         ###########################################
@@ -579,6 +578,7 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 12 and steerFlag == 1:
                 self._test_steering(0.0)
                 steerFlag = 2
+                flag = False
         self.state = 'lane_keeping'
         
 
@@ -599,7 +599,7 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 14 and steerFlag == 1:
                 self._test_steering(0.0)
                 steerFlag = 2
-
+                flag = False
         self.state = 'lane_keeping'
     
     # Function for car to go straight ahead at an intersection
@@ -617,7 +617,7 @@ class ImageProcess(WorkerProcess):
 
             if timer2 - timer1 > 11 and steerFlag == 1:
                 steerFlag = 2
-
+                flag = False
         self.state = 'lane_keeping'
 
     # Function for car to look for a stopline
@@ -673,11 +673,33 @@ class ImageProcess(WorkerProcess):
         # look at sign
         # go inside and keep right turn
 
+
     def _overtake(self):
         print('overtaking car')
         # wait for my car to approach the car
         # look at bounding box bottom line
         # if close enough, do manuever (on dotted line)
+
+        timer1 = time.time()
+        flag = True
+        self._test_steering(-0.75)
+        while flag:
+            timer2 = time.time()
+            passed_time = timer2 - timer1
+
+            if passed_time > 2 and steerFlag == 0:
+                self._test_steering(0.1)
+                steerFlag = 1
+
+            if timer2 - timer1 > 5 and steerFlag == 1:
+                self._test_steering(0.75)
+                steerFlag = 2
+
+            if timer2 - timer1 > 8 and steerFlag == 2:
+                self._test_steering(0.1)
+                flag = False
+
+        self.state = 'lane_keeping'
 
     def _wait_pedestrian_cross(self):
         print('waiting for pedestrian to cross')
@@ -686,6 +708,10 @@ class ImageProcess(WorkerProcess):
         # track where its going
         # take note where it came from (left or right)
         # turn camera to left/right and see if it crosses line
+
+
+    def _parallel_park(self):
+        print('parallel parking')
 
     def classify_frame(self, net, inputQueue, outputQueue):
     # keep looping

@@ -130,6 +130,8 @@ class ObjectDetection(WorkerProcess):
         
         while True:
             try:
+                print('***')
+
                 if not inputQueue.empty():
                     frame = inputQueue.get()
                     # resframe = cv2.resize(frame, (300, 300))

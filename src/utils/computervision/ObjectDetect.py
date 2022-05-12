@@ -132,7 +132,6 @@ class ObjectDetection(WorkerProcess):
         # time.sleep(10)
 
 
-        timer1 = time.time()
 
         while True:
             try:
@@ -163,19 +162,14 @@ class ObjectDetection(WorkerProcess):
                     outputQueue.put(data_out)
                 else:
                     print(2)
-                    flag = True
-                    while flag:
-                        timer2 = time.time()
-                        passed_time = timer2 - timer1
+        
 
-                        if passed_time > 12 :
-                            flag = False
-
-                        image = inP.recv()
+                    image = inP.recv()
+                    print(len(image))
                     # print(image)
                     #inputQueue.put(image.array)
-                        if image is not None:
-                            inputQueue.put(image)
+                    if image is not None:
+                        inputQueue.put(image)
 
                 
                 if not outputQueue.empty():

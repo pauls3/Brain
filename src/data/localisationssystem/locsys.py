@@ -73,6 +73,7 @@ class LocalisationSystem(Thread):
         """ Listening the coordination of robot
         """
         self.__position_listener.listen()
+        
 
     def run(self):
         while(self.__running):
@@ -88,8 +89,8 @@ class LocalisationSystem(Thread):
 
 if __name__ == '__main__':
     beacon = 12345
-    id = 4
-    serverpublickey = 'publickey_server.pem'
+    id = 117
+    serverpublickey = 'RebelDynamics.pem'
     
     gpsStR, gpsStS = Pipe(duplex = False)
     

@@ -684,7 +684,11 @@ class ImageProcess(WorkerProcess):
         # go inside and keep right turn
         # take second exit by turning right and then do lane centering
 
+
+        go_cmds = ['forward_normal']
         cmds = ['stop']
+
+        self._send_command(outPs, go_cmds)
         
         timer1 = time.time()
         flag = True

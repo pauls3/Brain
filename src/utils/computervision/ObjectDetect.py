@@ -184,8 +184,8 @@ class ObjectDetection(WorkerProcess):
                     print(out)
 
                 print(4)
-                if image is not None:
-                    image = inP.recv()
+                # if image is not None:
+                #     image = inP.recv()
                 print(5)
                 # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

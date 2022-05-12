@@ -699,10 +699,10 @@ class ImageProcess(WorkerProcess):
             passed_time = timer2 - timer1
 
             if passed_time > 1.5 and steerFlag == 0:
-                self._test_steering(0.8)
+                self._test_steering(0.7)
                 steerFlag = 1
 
-            if timer2 - timer1 > 10 and steerFlag == 1:
+            if timer2 - timer1 > 7 and steerFlag == 1:
                 self._test_steering(-0.75)
                 steerFlag = 2
 

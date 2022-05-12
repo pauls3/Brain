@@ -234,7 +234,7 @@ class ImageProcess(WorkerProcess):
 
         timer1 = time.time()
 
-        self._send_command(outPs, ['forward_normal'])
+        # self._send_command(outPs, ['forward_normal'])
         # self._enter_roundabout(outPs)
 
         while True:
@@ -385,10 +385,10 @@ class ImageProcess(WorkerProcess):
                     '''
                         end lanekeeping
                     '''
-                elif self.state == 'at_intersection':
-                    print('at intersection')
-                    cmds = ['stop']
-                    self._send_command(outPs, cmds)
+                # elif self.state == 'at_intersection':
+                #     print('at intersection')
+                #     cmds = ['stop']
+                #     self._send_command(outPs, cmds)
 
 
                 cv2.imshow(winname, thresh)

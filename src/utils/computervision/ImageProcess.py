@@ -234,7 +234,7 @@ class ImageProcess(WorkerProcess):
 
         timer1 = time.time()
 
-        # self._send_command(outPs, ['forward_normal'])
+        self._send_command(outPs, ['forward_normal'])
         # self._enter_roundabout(outPs)
 
         while True:

@@ -151,7 +151,7 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 3:
                 break
 
-        self._send_command(outPs, ['forward_normal'])
+        # self._send_command(outPs, ['forward_normal'])
         
         '''timer1 = time.time()
         while True:
@@ -234,6 +234,7 @@ class ImageProcess(WorkerProcess):
 
         timer1 = time.time()
 
+        self._send_command(outPs, ['forward_normal'])
         self._overtake(outPs)
 
         while False:
@@ -704,7 +705,7 @@ class ImageProcess(WorkerProcess):
                 self._test_steering(0.75)
                 steerFlag = 2
 
-            if timer2 - timer1 > 14 and steerFlag == 2:
+            if timer2 - timer1 > 13 and steerFlag == 2:
                 self._test_steering(0.1)
                 flag = False
                 self._send_command(outPs, cmds)

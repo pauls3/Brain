@@ -72,6 +72,8 @@ class ObjectDetection(WorkerProcess):
         self.WIDTH = 300
         self.inPs = inPipes[0]
         self.outPs = outPipes[0]
+        self.frame = None
+        self.inputQueue = Queue(maxsize = 1)
         
     # ===================================== RUN ==========================================
     def run(self):
@@ -90,14 +92,17 @@ class ObjectDetection(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='ObjectDetectionThread',target = self._detect_objects, args= (self.inPs, self.outPs))
+        streamTh = Thread(name='ObjectDetectionThread',target = self._detect_objects, args= (self.outPs))
         streamTh.daemon = True
         self.threads.append(streamTh)
-    
-    
+
+        
+        streamImg = Thread(name='ObjDetectionImgInputThread',target = self._in_image, args= (self.inPs))
+        streamImg.daemon = True
+        self.threads.append(streamImg)
     
     # ===================================== SEND THREAD ==================================
-    def _detect_objects(self, inP, outPs):
+    def _detect_objects(self, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -107,7 +112,7 @@ class ObjectDetection(WorkerProcess):
         """
 
         
-        inputQueue = Queue(maxsize = 1)
+        # inputQueue = Queue(maxsize = 1)
         outputQueue = Queue(maxsize = 1)
         confThreshold = 0.5
 
@@ -137,9 +142,9 @@ class ObjectDetection(WorkerProcess):
             try:
                 print('***')
 
-                if not inputQueue.empty():
+                if not self.inputQueue.empty():
                     print(1)
-                    frame = inputQueue.get()
+                    frame = self.inputQueue.get()
                     # resframe = cv2.resize(frame, (300, 300))
                     blob = cv2.dnn.blobFromImage(frame, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=True, crop=False)
                     net.setInput(blob)
@@ -158,6 +163,7 @@ class ObjectDetection(WorkerProcess):
                     if confidence > 0: #ignore garbage
                         inference.extend((obj_type,confidence,xmin,ymin,xmax,ymax))
                         data_out.append(inference)
+                        print(data_out)
 
                     outputQueue.put(data_out)
                 else:
@@ -168,7 +174,7 @@ class ObjectDetection(WorkerProcess):
                     # print(image)
                     #inputQueue.put(image.array)
                     if image is not None:
-                        inputQueue.put(image)
+                        self.inputQueue.put(image)
 
                     print("2...")
 
@@ -196,6 +202,37 @@ class ObjectDetection(WorkerProcess):
                 net = cv2.dnn.readNet(xml_path, bin_path)
                 # Specify target device
                 net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+                pass
+        
+        
+
+
+     # ===================================== SEND THREAD ==================================
+    def _in_image(self, inP):
+        """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
+        
+        Parameters
+        ----------
+        inP : Pipe
+            Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
+        """
+
+        
+        while True:
+            try:
+                print('***')
+
+                image = inP.recv()
+                    # print(image)
+                    #inputQueue.put(image.array)
+                if image is not None:
+                    self.inputQueue.put(image)
+
+                
+            except Exception as e:
+                print("Failure in obj detection in stream:",e,"\n")
+                # Reinitialize the model  
+                # Specify target device
                 pass
         
         

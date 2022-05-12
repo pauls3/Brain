@@ -451,8 +451,8 @@ class ImageProcess(WorkerProcess):
 
         # thresh0 = thresh1 = hough0 = hough1 =  1
         # Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
-        # stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
-        # stencil_no_gap = stencil_no_gap.astype('uint8')
+        stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        stencil_no_gap = stencil_no_gap.astype('uint8')
 
         # if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
         #     print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))

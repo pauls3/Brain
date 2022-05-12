@@ -95,8 +95,8 @@ class ImageProcess(WorkerProcess):
         self.turns = [] # the set path for the intersection turns
         self.current_turn_index = 0
 
-        # self.net = cv2.dnn.readNet('../open_vino/ssd_mobilenet/bosch_model_0/saved_model.xml', '../open_vino/ssd_mobilenet/bosch_model_0/saved_model.bin')
-        # self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+        self.net = cv2.dnn.readNet('../open_vino/ssd_mobilenet/bosch_model_0/saved_model.xml', '../open_vino/ssd_mobilenet/bosch_model_0/saved_model.bin')
+        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
         
         
     # ===================================== RUN ==========================================

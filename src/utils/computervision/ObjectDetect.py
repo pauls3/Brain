@@ -129,7 +129,17 @@ class ObjectDetection(WorkerProcess):
 
         
 
-        time.sleep(10)
+        # time.sleep(10)
+
+        timer1 = time.time()
+        flag = True
+        while flag:
+            timer2 = time.time()
+            passed_time = timer2 - timer1
+
+            if passed_time > 12 :
+                flag = False
+
         while True:
             try:
                 print('***')

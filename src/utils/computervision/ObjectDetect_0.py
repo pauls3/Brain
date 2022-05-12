@@ -63,8 +63,8 @@ rawCapture = PiRGBArray(camera, size=(304, 304))
 time.sleep(0.1)
 
 
-# labels_file = 'models/labels.txt'
-labels_file = args['labels']
+labels_file = 'models/labels.txt'
+# labels_file = args['labels']
 with open(labels_file, 'r') as f:
 	labels = [x.strip() for x in f]
 print(labels)

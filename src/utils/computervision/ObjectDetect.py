@@ -171,6 +171,8 @@ class ObjectDetection(WorkerProcess):
                     if image is not None:
                         inputQueue.put(image)
 
+                    print("2...")
+
                 
                 if not outputQueue.empty():
                     print(3)
@@ -182,6 +184,7 @@ class ObjectDetection(WorkerProcess):
                     outPs.send(out)
                     print(out)
 
+                print(4)
                 image = inP.recv()
                 print(image)
                 # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

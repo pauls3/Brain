@@ -199,19 +199,19 @@ class ImageProcess(WorkerProcess):
         # stencil = stencil_gap
         # stencil_prime = stencil_gap_prime
         
-        winname = 'RebelDynamics'
-        cv2.namedWindow(winname)
-        #cv2.moveWindow(winname, 0,0)
+        # winname = 'RebelDynamics'
+        # cv2.namedWindow(winname)
+        # #cv2.moveWindow(winname, 0,0)
         
 
 
-        cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
-        cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
+        # cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
+        # cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
+        # cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
+        # cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
         
-        thresh0 = thresh1 = hough0 = hough1 =  1
-        Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
+        # thresh0 = thresh1 = hough0 = hough1 =  1
+        # Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
 
 
 
@@ -234,7 +234,7 @@ class ImageProcess(WorkerProcess):
 
         timer1 = time.time()
 
-        self._send_command(outPs, ['forward_normal'])
+        # self._send_command(outPs, ['forward_normal'])
         # self._enter_roundabout(outPs)
 
         while True:
@@ -463,6 +463,20 @@ class ImageProcess(WorkerProcess):
 
 
     def _lane_keeping(self, image):
+
+        winname = 'RebelDynamics'
+        cv2.namedWindow(winname)
+        #cv2.moveWindow(winname, 0,0)
+        
+
+
+        cv2.createTrackbar('Thresh0', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('Thresh1', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughLines', 'RebelDynamics', 0, 255, nothing)
+        cv2.createTrackbar('HoughGap', 'RebelDynamics', 1, 255, nothing)
+        
+        thresh0 = thresh1 = hough0 = hough1 =  1
+        Pthresh0 = Pthresh1 = Phough0 = Phough1 = 1
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_no_gap = stencil_no_gap.astype('uint8')
         
@@ -559,7 +573,10 @@ class ImageProcess(WorkerProcess):
         lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
         
         # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-        self._change_steering(steering_angle)
+        # self._change_steering(steering_angle)
+
+        cv2.imshow(winname, thresh)
+        cv2.waitKey(1)
 
 
     # Function for car to make a right turn at an intersection

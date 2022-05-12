@@ -261,6 +261,7 @@ class ImageProcess(WorkerProcess):
                 '''
                 self.detected = []
                 detections = inDetections.recv()
+                print('test0')
                 if detections is not None:
                     for detection in detections:
                         objID = detection[0]
@@ -288,6 +289,7 @@ class ImageProcess(WorkerProcess):
                     Lane keeping
                 '''
                 if self.state == 'lane_keeping':
+                    print('test1')
                     # self._lane_keeping(image)
                     # convert to rgb
                     rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

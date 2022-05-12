@@ -158,6 +158,7 @@ class ObjectDetection(WorkerProcess):
                 else:
                     print(2)
                     image = inP.recv()
+                    print(image)
                     #inputQueue.put(image.array)
                     if image is not None:
                         inputQueue.put(image)

@@ -70,10 +70,10 @@ class ObjectDetection(WorkerProcess):
         super(ObjectDetection,self).__init__(inPipes, outPipes)
         self.HEIGHT = 300
         self.WIDTH = 300
-        # self.inPs = inPipes[0]
-        # self.outPs = outPipes[0]
-        self.inPs = inPipes
-        self.outPs = outPipes
+        self.inPs = inPipes[0]
+        self.outPs = outPipes[0]
+        # self.inPs = inPipes
+        # self.outPs = outPipes
         self.frame = None
         # self.inputQueue = Queue(maxsize = 1)
         

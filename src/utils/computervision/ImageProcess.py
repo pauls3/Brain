@@ -234,7 +234,7 @@ class ImageProcess(WorkerProcess):
 
         timer1 = time.time()
 
-        self._overtake()
+        self._overtake(outPs)
 
         while False:
             try:
@@ -679,11 +679,14 @@ class ImageProcess(WorkerProcess):
         # go inside and keep right turn
 
 
-    def _overtake(self):
+    def _overtake(self, outPs):
         print('overtaking car')
         # wait for my car to approach the car
         # look at bounding box bottom line
         # if close enough, do manuever (on dotted line)
+
+        cmds = ['stop']
+        
 
         timer1 = time.time()
         flag = True
@@ -693,17 +696,18 @@ class ImageProcess(WorkerProcess):
             timer2 = time.time()
             passed_time = timer2 - timer1
 
-            if passed_time > 2 and steerFlag == 0:
+            if passed_time > 4 and steerFlag == 0:
                 self._test_steering(0.1)
                 steerFlag = 1
 
-            if timer2 - timer1 > 5 and steerFlag == 1:
+            if timer2 - timer1 > 8 and steerFlag == 1:
                 self._test_steering(0.75)
                 steerFlag = 2
 
-            if timer2 - timer1 > 8 and steerFlag == 2:
+            if timer2 - timer1 > 12 and steerFlag == 2:
                 self._test_steering(0.1)
                 flag = False
+                self._send_command(outPs, cmds)
 
         self.state = 'lane_keeping'
 

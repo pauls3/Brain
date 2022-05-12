@@ -164,40 +164,40 @@ class ImageProcess(WorkerProcess):
         # self._send_command(outPs, ['forward_normal'])
         
 
-        stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
-        stencil_no_gap = stencil_no_gap.astype('uint8')
+        # stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        # stencil_no_gap = stencil_no_gap.astype('uint8')
         
-        stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
-        stencil_gap = stencil_gap.astype('uint8')
+        # stencil_gap = np.zeros((self.HEIGHT, self.WIDTH))
+        # stencil_gap = stencil_gap.astype('uint8')
 
-        stencil_gap_prime = np.zeros((self.HEIGHT, self.WIDTH))
-        stencil_gap_prime = stencil_gap_prime.astype('uint8')
+        # stencil_gap_prime = np.zeros((self.HEIGHT, self.WIDTH))
+        # stencil_gap_prime = stencil_gap_prime.astype('uint8')
         
-        # specify coordinates of the polygon
-        #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
-        #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
+        # # specify coordinates of the polygon
+        # #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
+        # #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
         
 
-        # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
-        # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
+        # # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
+        # # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
         
-        polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
-        polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
+        # polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
+        # polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        # cv2.fillPoly(stencil_gap, [polygon1, polygon2], 1)
 
-        polygon3 = np.array([[90, 300], [90, 150], [180, 150], [180, 300]])
-        polygon4 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
-        cv2.fillPoly(stencil_gap_prime, [polygon3, polygon4], 1)
+        # polygon3 = np.array([[90, 300], [90, 150], [180, 150], [180, 300]])
+        # polygon4 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
+        # cv2.fillPoly(stencil_gap_prime, [polygon3, polygon4], 1)
         
         
-        polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
-        cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
+        # polygon = np.array([[0, 300], [0,150], [300,150], [300, 300]])
+        # cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
         
         
             
                 
-        stencil = stencil_gap
-        stencil_prime = stencil_gap_prime
+        # stencil = stencil_gap
+        # stencil_prime = stencil_gap_prime
         
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
@@ -234,8 +234,8 @@ class ImageProcess(WorkerProcess):
 
         timer1 = time.time()
 
-        self._send_command(outPs, ['forward_normal'])
-        self._overtake(outPs)
+        # self._send_command(outPs, ['forward_normal'])
+        self._enter_roundabout(self, outPs)
 
         while False:
             try:
@@ -608,6 +608,7 @@ class ImageProcess(WorkerProcess):
                 flag = False
         self.state = 'lane_keeping'
     
+
     # Function for car to go straight ahead at an intersection
     def _straight_ahead(self):
         print('straight ahead')
@@ -625,6 +626,7 @@ class ImageProcess(WorkerProcess):
                 steerFlag = 2
                 flag = False
         self.state = 'lane_keeping'
+
 
     # Function for car to look for a stopline
     def _find_stopline(self, thresh):
@@ -666,6 +668,8 @@ class ImageProcess(WorkerProcess):
     # try finding average or convert to grayscale and get intensity?
     def _traffic_light_classification(self):
         print('classifying traffic light color')
+        # get bounding box of traffic light
+        # break 
 
     def _intersection_action(self):
         print('doing intersection')
@@ -673,11 +677,36 @@ class ImageProcess(WorkerProcess):
         # rotate servo left to right
         #   put primary focus on right for detection of signs
 
-    def _enter_roundabout(self):
+    def _enter_roundabout(self, outPs):
         print('entering roundabout')
         # stop at stop-line
         # look at sign
         # go inside and keep right turn
+        # take second exit by turning right and then do lane centering
+
+        cmds = ['stop']
+        
+        timer1 = time.time()
+        flag = True
+        self._test_steering(0.1)
+        steerFlag = 0
+        while flag:
+            timer2 = time.time()
+            passed_time = timer2 - timer1
+
+            if passed_time > 1.5 and steerFlag == 0:
+                self._test_steering(-0.8)
+                steerFlag = 1
+
+            if timer2 - timer1 > 10 and steerFlag == 1:
+                self._test_steering(0.75)
+                steerFlag = 2
+
+            if timer2 - timer1 > 13 and steerFlag == 2:
+                self._test_steering(0.1)
+                steerFlag = 3
+                flag = False
+                self._send_command(outPs, cmds)
 
 
     def _overtake(self, outPs):
@@ -688,7 +717,6 @@ class ImageProcess(WorkerProcess):
 
         cmds = ['stop']
         
-
         timer1 = time.time()
         flag = True
         self._test_steering(-0.75)
@@ -725,8 +753,48 @@ class ImageProcess(WorkerProcess):
         # turn camera to left/right and see if it crosses line
 
 
-    def _parallel_park(self):
+    def _parallel_park(self, outPs):
         print('parallel parking')
+        # detected parking sign
+        # slow down
+        # approach first parking slot
+        #   look right
+        #   see if spot is empty
+        #   if so, engage parking
+        #   if not, approach second spot (using lane centering)
+        #       engage parking
+
+        stop_cmd = ['stop']
+        reverse = ['reverse']
+        forward = ['forward_slow']
+        
+        timer1 = time.time()
+        flag = True
+        self._send_command(outPs, reverse)
+        self._test_steering(0.85)
+        steerFlag = 0
+        while flag:
+            timer2 = time.time()
+            passed_time = timer2 - timer1
+
+            if passed_time > 4 and steerFlag == 0:
+                self._test_steering(-0.85)
+                steerFlag = 1
+
+            if timer2 - timer1 > 8 and steerFlag == 1:
+                self._test_steering(0.1)
+                steerFlag = 2
+
+            if timer2 - timer1 > 10 and steerFlag == 2:
+                steerFlag = 3
+                self._send_command(outPs, forward)
+
+            if timer2 - timer1 > 12 and steerFlag == 3:
+                steerFlag = 4
+                flag = False
+                self._send_command(outPs, stop_cmd)
+
+
 
     def classify_frame(self, net, inputQueue, outputQueue):
     # keep looping
@@ -757,10 +825,6 @@ class ImageProcess(WorkerProcess):
                         data_out.append(inference)
 
                 outputQueue.put(data_out)
-    
-
-
-
     
             
 
@@ -953,7 +1017,6 @@ class ImageProcess(WorkerProcess):
     
 
 
-
     def stabilize_steering_angle(
           self,
           curr_steering_angle, 
@@ -984,7 +1047,6 @@ class ImageProcess(WorkerProcess):
 
 
 
-    
     def _steering_cmd(self, x_offset, y_offset):
         return int(math.atan(x_offset / y_offset) * 180.0 / math.pi) + 90
 
@@ -1003,6 +1065,7 @@ class ImageProcess(WorkerProcess):
         else:
             return ['forward', 'straight']
         '''
+
 
 
     def _test_steering(self, angle):

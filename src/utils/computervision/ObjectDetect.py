@@ -132,8 +132,8 @@ class ObjectDetection(WorkerProcess):
             try:
                 if not inputQueue.empty():
                     frame = inputQueue.get()
-                    resframe = cv2.resize(frame, (300, 300))
-                    blob = cv2.dnn.blobFromImage(resframe, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=True, crop=False)
+                    # resframe = cv2.resize(frame, (300, 300))
+                    blob = cv2.dnn.blobFromImage(frame, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=True, crop=False)
                     net.setInput(blob)
                     out = net.forward()
                     data_out = []
@@ -153,7 +153,7 @@ class ObjectDetection(WorkerProcess):
 
                     outputQueue.put(data_out)
                 else:
-                    stamps, image = inP.recv()
+                    # stamps, image = inP.recv()
                     #inputQueue.put(image.array)
                     inputQueue.put(image)
 
@@ -168,9 +168,7 @@ class ObjectDetection(WorkerProcess):
                     print(out)
 
                 stamps, image = inP.recv()
-                rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-
+                # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
                 
             except Exception as e:

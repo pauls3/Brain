@@ -91,7 +91,8 @@ class EnvironmentalHandler(Thread):
 if __name__ == '__main__':
     beacon = 23456
     id = 117
-    serverpublickey = 'publickey_server.pem'
+    #serverpublickey = 'publickey_server.pem'
+    serverpublickey = 'publickey_server_test.pem'
     clientprivatekey = 'privatecKey_client.pem'
     
     gpsStR, gpsStS = Pipe(duplex = False)

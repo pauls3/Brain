@@ -59,6 +59,22 @@ Device.pin_factory = PiGPIOFactory('127.0.0.1')
 #from pynput import keyboard 
 #from src.utils.tflite import ObjectDetector
 
+
+
+
+
+
+
+# slow down when sign is detected from far away
+
+
+
+
+
+
+
+
+
 def nothing(x):
     pass
 
@@ -82,8 +98,9 @@ class ImageProcess(WorkerProcess):
         self.HEIGHT = 300
         self.WIDTH = 300
         self.inPs = inPipes[0]
-        #self.inDetectedPs = inPipes[1]
+        self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
+        self.outFrame = outPipes[1]
         self.curr_steer_angle = 0.0
 
         self.rcBrain = RcBrainThread()
@@ -94,6 +111,7 @@ class ImageProcess(WorkerProcess):
         self.previousState = 'lane_keeping'
         self.turns = [] # the set path for the intersection turns
         self.current_turn_index = 0
+        self.detected = []
 
         # self.net = cv2.dnn.readNet('/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.xml', '/home/pi/repos/Brain/src/utils/openvino/ssd_mobilenet/bosch_model_0/saved_model.bin')
         # self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
@@ -116,7 +134,7 @@ class ImageProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs, ))
+        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.inDetectedPs, self.outPs, self.outFrame))
         streamTh.daemon = True
         self.threads.append(streamTh)
 
@@ -133,7 +151,7 @@ class ImageProcess(WorkerProcess):
 
     
     # ===================================== SEND THREAD ==================================
-    def _process_image(self, inP, outPs):
+    def _process_image(self, inP, inDetections, outPs, outFrame):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -153,14 +171,6 @@ class ImageProcess(WorkerProcess):
 
         # self._send_command(outPs, ['forward_normal'])
         
-        '''timer1 = time.time()
-        while True:
-            timer2 = time.time()
-            if timer2 - timer1 > 10:
-                break
-
-        self._send_command(outPs, ['forward_slow'])
-        '''
         # self._send_command(outPs, ['forward_normal'])
         
 
@@ -172,14 +182,7 @@ class ImageProcess(WorkerProcess):
 
         stencil_gap_prime = np.zeros((self.HEIGHT, self.WIDTH))
         stencil_gap_prime = stencil_gap_prime.astype('uint8')
-        
-        # specify coordinates of the polygon
-        #polygon = np.array([[0, 480], [0,300], [75, 230], [550, 230], [640, 300], [640, 480]])
-        #polygon = np.array([[0, 320], [0,200], [30,170], [170,170], [320,200], [320, 320]])
-        
 
-        # polygon1 = np.array([[0, 640], [0,320], [140,320], [140, 640]])
-        # polygon2 = np.array([[500,640], [500, 320], [640,320], [640, 640]])
         
         polygon1 = np.array([[0, 300], [0,150], [90,150], [90, 300]])
         polygon2 = np.array([[210,300], [210, 150], [300,150], [300, 300]])
@@ -194,14 +197,11 @@ class ImageProcess(WorkerProcess):
         cv2.fillConvexPoly(stencil_no_gap, polygon, 1)
         
         
-            
-                
         stencil = stencil_gap
         stencil_prime = stencil_gap_prime
         
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
-        # #cv2.moveWindow(winname, 0,0)
         
 
 
@@ -245,6 +245,9 @@ class ImageProcess(WorkerProcess):
                 stamps, rawImage = inP.recv()
                 # resize image to 300x300
                 image = cv2.resize(rawImage, (300, 300))
+
+
+                outFrame.send(image)
                 
                 '''
                     Testing reading image from file
@@ -256,28 +259,25 @@ class ImageProcess(WorkerProcess):
                 '''
                     start object detection
                 '''
-                # # if inputqueue is empty, give current image to detector
-                # if inputQueue.empty():
-                #     inputQueue.put(image)
-                # # grab deteciton if the outqueue is not empty
-                # if not outputQueue.empty():
-                #     detectionOut = outputQueue.out()
-                
-                # # check if detections is not empty
-                # if detectionOut is not None:
-                #     # iterate through detections
-                #     for detection in detectionOut:
-                #         objID = detection[0]
-                #         confidence = detection[1]
-                #         xmin = detection[2]
-                #         ymin = detection[3]
-                #         xmax = detection[4]
-                #         ymax = detection[5]
-
-                #         # found objects within confidence threshold
-                #         if confidence > self.confThreshold:
-                #             print('test')
-                
+                self.detected = []
+                detections = inDetections.recv()
+                if detections is not None:
+                    for detection in detections:
+                        objID = detection[0]
+                        confidence = detection[1]
+                        xmin = detection[2]
+                        ymin = detection[3]
+                        xmax = detection[4]
+                        ymax = detection[5]
+                        
+                        if confidence >= self.confThreshold:
+                            self.detected.append(detection)
+                        
+                        # car found
+                        if objID == 0:
+                            # Need to estimate where car is (look for bottom)
+                            # self._overtake(outPs)
+                            print('found car')
                 '''
                     end object detection
                 '''
@@ -288,131 +288,123 @@ class ImageProcess(WorkerProcess):
                     Lane keeping
                 '''
                 if self.state == 'lane_keeping':
-                    self._lane_keeping(image)
-                #     # convert to rgb
-                #     rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                #     # convert to grayscale
-                #     #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                #     # crop with mask
-                #     #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-                #     # img_crop = cv2.bitwise_and(image, image, mask=stencil)
-                #     # convert to grayscale
-                #     # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-                #     img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                #     # blur
-                #     #blur_img = cv2.blur(img_crop_gray, (10,10))
-                #     blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
-                #     # get threshold
-                #     # (199, 170) for plastic ground
-                #     ## Test track
-                #     # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
-                #     ## Final Track (afternoon)
-                #     # ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
-                #     '''
-                #         Commented line is used to adjust parameters during testing!
-                #     '''
-                #     ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
+                    # self._lane_keeping(image)
+                    # convert to rgb
+                    rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    # convert to grayscale
+                    #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                    # crop with mask
+                    #img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
+                    # img_crop = cv2.bitwise_and(image, image, mask=stencil)
+                    # convert to grayscale
+                    # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+                    img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                    # blur
+                    #blur_img = cv2.blur(img_crop_gray, (10,10))
+                    blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
+                    # get threshold
+                    # (199, 170) for plastic ground
+                    ## Test track
+                    # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
+                    ## Final Track (afternoon)
+                    # ret, thresh = cv2.threshold(blur_img, 180, 158, cv2.THRESH_BINARY)
+                    '''
+                        Commented line is used to adjust parameters during testing!
+                    '''
+                    ret, thresh = cv2.threshold(blur_img, thresh0, thresh1, cv2.THRESH_BINARY)
 
 
-                #     '''
-                #         Looking for stopline (intersection!)
-                #     '''
+                    '''
+                        Looking for stopline (intersection!)
+                    '''
 
-                #     # if self._find_stopline(thresh):
-                #     #     self.state = 'at_intersection'
-                #     #     continue
-
-
+                    # if self._find_stopline(thresh):
+                    #     self.state = 'at_intersection'
+                    #     continue
 
 
-                #     # get edges using Canny algorithm
-                #     edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
+
+
+                    # get edges using Canny algorithm
+                    edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)
                     
-                #     # Crop image for lane detection
-                #     cropped_lane_detection = cv2.bitwise_and(edges, edges, mask=stencil)
+                    # Crop image for lane detection
+                    cropped_lane_detection = cv2.bitwise_and(edges, edges, mask=stencil)
 
-                #     # Crop image for stop-line detection
-                #     cropped_stop_line = cv2.bitwise_and(edges, edges, mask=stencil_prime)
+                    # Crop image for stop-line detection
+                    cropped_stop_line = cv2.bitwise_and(edges, edges, mask=stencil_prime)
 
-                #     # get lines for lane detection
-                #     lane_detection_lines = cv2.HoughLinesP(cropped_lane_detection, 1, np.pi/180, 25, maxLineGap=200)
-                #     '''
-                #         Commented line is used to adjust parameters during testing!
-                #     '''
-                #     # lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
+                    # get lines for lane detection
+                    lane_detection_lines = cv2.HoughLinesP(cropped_lane_detection, 1, np.pi/180, 25, maxLineGap=200)
+                    '''
+                        Commented line is used to adjust parameters during testing!
+                    '''
+                    # lines = cv2.HoughLinesP(edges, 1, np.pi/180, hough1, maxLineGap=200)
                     
 
-                #     # get lines for lane detection
-                #     # stop_line_detections = cv2.HoughLinesP(lane_detection_lines, 1, np.pi/180, 25, maxLineGap=10)
+                    # get lines for lane detection
+                    # stop_line_detections = cv2.HoughLinesP(lane_detection_lines, 1, np.pi/180, 25, maxLineGap=10)
 
-                #     # if lines is not None:
-                #     #     for jj in range(0, len(lines)):
-                #     #         ll = lines[jj][0]
-                #     #         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
+                    # if lines is not None:
+                    #     for jj in range(0, len(lines)):
+                    #         ll = lines[jj][0]
+                    #         cv2.line(rgb_img, (ll[0], ll[1]), (ll[2], ll[3]), (0,0,255), 3, cv2.LINE_AA)
                     
-                #     # convert to rgb
-                #     #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
+                    # convert to rgb
+                    #rgb_img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2RGB) 
                     
-                #     # get lane lines
-                #     lane_lines = self._avg_slope_intersect(lane_detection_lines)
+                    # get lane lines
+                    lane_lines = self._avg_slope_intersect(lane_detection_lines)
                     
-                #     #frame_objects = rgb_img
+                    #frame_objects = rgb_img
                     
-                #     # draw lines to grayscale image
-                #     #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
-                #     #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
-                #     lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
+                    # draw lines to grayscale image
+                    #lane_lines_img, lane_centering_cmds = self._display_lines(frame_objects, lane_lines)
+                    #lane_lines_img, steering_angle, num_lines = self._display_lines(img_crop, lane_lines)
+                    lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                     
-                #     # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                #     # self._change_steering(steering_angle)
+                    # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
+                    # self._change_steering(steering_angle)
 
 
 
-                #     cv2.imshow(winname, thresh)
-                #     cv2.waitKey(1)
+                    cv2.imshow(winname, thresh)
+                    cv2.waitKey(1)
 
-                #     thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
-                #     thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
-                #     hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
-                #     hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
+                    thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                    thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                    hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                    hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
 
-                #     if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
-                #         print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
-                #         Pthresh0 = thresh0
-                #         Pthresh1 = thresh1
-                #         Phough0 = hough0
-                #         Phough1 = hough1
-                #     '''
-                #         end lanekeeping
-                #     '''
-                # elif self.state == 'at_intersection':
-                #     print('at intersection')
-                #     cmds = ['stop']
-                #     self._send_command(outPs, cmds)
-
-
+                    if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                        print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                        Pthresh0 = thresh0
+                        Pthresh1 = thresh1
+                        Phough0 = hough0
+                        Phough1 = hough1
+                    '''
+                        end lanekeeping
+                    '''
+                elif self.state == 'at_intersection':
+                    print('at intersection')
+                    cmds = ['stop']
+                    self._send_command(outPs, cmds)
 
 
-                #plt.imshow(lane_lines_img)
-                #plt.show()
-                #cv2.putText(lane_lines_img,'VID FPS: '+str(fps), (225, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0, 255, 255), 1, cv2.LINE_AA)
-                #out_img = cv2.resize(lane_lines_img, (640, 640))
-                #cv2.imshow(winname, out_img)
+                cv2.imshow(winname, thresh)
+                cv2.waitKey(1)
 
-                # cv2.imshow(winname, thresh)
-                # cv2.waitKey(1)
+                thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
 
-                # thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
-                # thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
-                # hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
-                # hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
-
-                # if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
-                #     print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
-                #     Pthresh0 = thresh0
-                #     Pthresh1 = thresh1
-                #     Phough0 = hough0
-                #     Phough1 = hough1
+                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                    print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                    Pthresh0 = thresh0
+                    Pthresh1 = thresh1
+                    Phough0 = hough0
+                    Phough1 = hough1
 
 
 
@@ -558,8 +550,8 @@ class ImageProcess(WorkerProcess):
         # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
         # self._change_steering(steering_angle)
 
-        cv2.imshow(winname, thresh)
-        cv2.waitKey(1)
+        # cv2.imshow(winname, thresh)
+        # cv2.waitKey(1)
 
 
     # Function for car to make a right turn at an intersection
@@ -758,7 +750,7 @@ class ImageProcess(WorkerProcess):
         # if pedestrian is spotted, stop
         # track where its going
         # take note where it came from (left or right)
-        # turn camera to left/right and see if it crosses line
+        # turn camera to left/right and see if pedestrian stops moving
 
 
     def _parallel_park(self, outPs):
@@ -833,8 +825,7 @@ class ImageProcess(WorkerProcess):
                         data_out.append(inference)
 
                 outputQueue.put(data_out)
-    
-            
+        
 
 
     def _avg_slope_intersect(self, lines):
@@ -1081,7 +1072,6 @@ class ImageProcess(WorkerProcess):
         self.servo.value = angle
 
 
-
     def _change_steering(self, angle):
         # angle values:
         #       0-89:   turn left
@@ -1110,6 +1100,7 @@ class ImageProcess(WorkerProcess):
         
         self.servo.value = correct_angle
     
+
     def _get_slope(self, x1, y1, x2, y2):
         x1 = float(x1)
         x2 = float(x2)

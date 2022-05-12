@@ -230,8 +230,13 @@ class ImageProcess(WorkerProcess):
         ###########################################
 
         self.fStateMachine.force_restart()
+
+
         timer1 = time.time()
-        while True:
+
+        self._overtake()
+
+        while False:
             try:
 
                 timer2 = time.time()

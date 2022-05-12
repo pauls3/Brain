@@ -688,6 +688,7 @@ class ImageProcess(WorkerProcess):
         timer1 = time.time()
         flag = True
         self._test_steering(-0.75)
+        steerFlag = 0
         while flag:
             timer2 = time.time()
             passed_time = timer2 - timer1

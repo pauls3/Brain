@@ -92,6 +92,8 @@ class ImageProcess(WorkerProcess):
         self.confThreshold = 0.5
         self.state = 'lane_keeping'
         self.previousState = 'lane_keeping'
+        self.turns = [] # the set path for the intersection turns
+        self.current_turn_index = 0
 
         # self.net = cv2.dnn.readNet('../open_vino/ssd_mobilenet/bosch_model_0/saved_model.xml', '../open_vino/ssd_mobilenet/bosch_model_0/saved_model.bin')
         # self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
@@ -652,6 +654,7 @@ class ImageProcess(WorkerProcess):
     # Function for car to look for crosswalk lines 
     def _find_crosswalk(self):
         print('found crosswalk')
+        # not sure if needed...
 
     # Classifying traffic light color (red or green)
     # try finding average or convert to grayscale and get intensity?
@@ -664,7 +667,25 @@ class ImageProcess(WorkerProcess):
         # rotate servo left to right
         #   put primary focus on right for detection of signs
 
+    def _enter_roundabout(self):
+        print('entering roundabout')
+        # stop at stop-line
+        # look at sign
+        # go inside and keep right turn
 
+    def _overtake(self):
+        print('overtaking car')
+        # wait for my car to approach the car
+        # look at bounding box bottom line
+        # if close enough, do manuever (on dotted line)
+
+    def _wait_pedestrian_cross(self):
+        print('waiting for pedestrian to cross')
+        # slow down at pedestrian sign
+        # if pedestrian is spotted, stop
+        # track where its going
+        # take note where it came from (left or right)
+        # turn camera to left/right and see if it crosses line
 
     def classify_frame(self, net, inputQueue, outputQueue):
     # keep looping

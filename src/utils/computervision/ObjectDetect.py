@@ -106,7 +106,7 @@ class ObjectDetection(WorkerProcess):
             Input pipe to read the frames from CameraProcess or CameraSpooferProcess. 
         """
 
-        time.sleep(10)
+        time.sleep(3)
         inputQueue = Queue(maxsize = 1)
         outputQueue = Queue(maxsize = 1)
         confThreshold = 0.5
@@ -153,9 +153,10 @@ class ObjectDetection(WorkerProcess):
 
                     outputQueue.put(data_out)
                 else:
-                    image = inP.recv()
-                    #inputQueue.put(image.array)
-                    inputQueue.put(image)
+                    if image is not None:
+                        image = inP.recv()
+                        #inputQueue.put(image.array)
+                        inputQueue.put(image)
 
                 
                 if not outputQueue.empty():
@@ -167,7 +168,8 @@ class ObjectDetection(WorkerProcess):
                     outPs.send(out)
                     print(out)
 
-                image = inP.recv()
+                if image is not None:
+                    image = inP.recv()
                 # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
                 

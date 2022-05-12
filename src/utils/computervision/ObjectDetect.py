@@ -70,10 +70,12 @@ class ObjectDetection(WorkerProcess):
         super(ObjectDetection,self).__init__(inPipes, outPipes)
         self.HEIGHT = 300
         self.WIDTH = 300
-        self.inPs = inPipes[0]
-        self.outPs = outPipes[0]
+        # self.inPs = inPipes[0]
+        # self.outPs = outPipes[0]
+        self.inPs = inPipes
+        self.outPs = outPipes
         self.frame = None
-        self.inputQueue = Queue(maxsize = 1)
+        # self.inputQueue = Queue(maxsize = 1)
         
     # ===================================== RUN ==========================================
     def run(self):
@@ -92,17 +94,17 @@ class ObjectDetection(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='ObjectDetectionThread',target = self._detect_objects, args= (self.outPs))
+        streamTh = Thread(name='ObjectDetectionThread',target = self._detect_objects, args= (self.inPs, self.outPs))
         streamTh.daemon = True
         self.threads.append(streamTh)
 
         
-        streamImg = Thread(name='ObjDetectionImgInputThread',target = self._in_image, args= (self.inPs))
-        streamImg.daemon = True
-        self.threads.append(streamImg)
+        # streamImg = Thread(name='ObjDetectionImgInputThread',target = self._in_image, args= (self.inPs,))
+        # streamImg.daemon = True
+        # self.threads.append(streamImg)
     
     # ===================================== SEND THREAD ==================================
-    def _detect_objects(self, outPs):
+    def _detect_objects(self, inP, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -112,7 +114,7 @@ class ObjectDetection(WorkerProcess):
         """
 
         
-        # inputQueue = Queue(maxsize = 1)
+        inputQueue = Queue(maxsize = 1)
         outputQueue = Queue(maxsize = 1)
         confThreshold = 0.5
 
@@ -142,11 +144,11 @@ class ObjectDetection(WorkerProcess):
             try:
                 print('***')
 
-                if not self.inputQueue.empty():
+                if not inputQueue.empty():
                     print(1)
-                    frame = self.inputQueue.get()
-                    # resframe = cv2.resize(frame, (300, 300))
-                    blob = cv2.dnn.blobFromImage(frame, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=True, crop=False)
+                    frame = inputQueue.get()
+                    resframe = cv2.resize(frame, (300, 300))
+                    blob = cv2.dnn.blobFromImage(resframe, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=True, crop=False)
                     net.setInput(blob)
                     out = net.forward()
                     data_out = []
@@ -170,11 +172,11 @@ class ObjectDetection(WorkerProcess):
                     print(2)
         
 
-                    image = inP.recv()
+                    stamp, image = inP.recv()
                     # print(image)
                     #inputQueue.put(image.array)
                     if image is not None:
-                        self.inputQueue.put(image)
+                        inputQueue.put(image)
 
                     print("2...")
 
@@ -191,7 +193,7 @@ class ObjectDetection(WorkerProcess):
 
                 print(4)
                 # if image is not None:
-                #     image = inP.recv()
+                stamp, image = inP.recv()
                 print(5)
                 # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

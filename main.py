@@ -76,14 +76,14 @@ def main():
             allProcesses.append(camSpoofer)
 
         else:'''
-        camProc = CameraProcess([],[camStS])
+        camProc = CameraProcess([],[camStS, imgStS])
         allProcesses.append(camProc)
 
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         # streamProc = CameraStreamerProcess([camStR], [rcShS])
         # streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
-        streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
+        streamProc = ImageProcess([camStR, inDetected], [rcShS])
         allProcesses.append(streamProc)
         
 

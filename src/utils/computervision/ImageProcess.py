@@ -100,7 +100,7 @@ class ImageProcess(WorkerProcess):
         self.inPs = inPipes[0]
         self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
-        self.outFrame = outPipes[1]
+        # self.outFrame = outPipes[1]
         self.curr_steer_angle = 0.0
 
         self.rcBrain = RcBrainThread()
@@ -151,7 +151,7 @@ class ImageProcess(WorkerProcess):
 
     
     # ===================================== SEND THREAD ==================================
-    def _process_image(self, inP, inDetections, outPs, outFrame):
+    def _process_image(self, inP, inDetections, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -247,7 +247,7 @@ class ImageProcess(WorkerProcess):
                 image = cv2.resize(rawImage, (300, 300))
 
 
-                outFrame.send(image)
+                # outFrame.send(image)
                 
                 '''
                     Testing reading image from file

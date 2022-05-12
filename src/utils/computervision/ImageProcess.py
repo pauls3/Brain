@@ -700,7 +700,7 @@ class ImageProcess(WorkerProcess):
                 self._test_steering(0.1)
                 steerFlag = 1
 
-            if timer2 - timer1 > 8 and steerFlag == 1:
+            if timer2 - timer1 > 6 and steerFlag == 1:
                 self._test_steering(0.75)
                 steerFlag = 2
 

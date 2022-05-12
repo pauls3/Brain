@@ -235,7 +235,7 @@ class ImageProcess(WorkerProcess):
         outputQueue = Queue(maxsize=1)
         detectionOut = None
         print("[INFO] starting process...")
-        p = Process(target=self.classify_frame, args=(self.net,inputQueue,outputQueue,))
+        p = Process(target=self.classify_frame, args=(net,inputQueue,outputQueue,))
         p.daemon = True
         p.start()
         

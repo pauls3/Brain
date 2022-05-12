@@ -423,10 +423,6 @@ class ImageProcess(WorkerProcess):
                     self._send_command(outPs, ['stop'])
                     steerFlag = 2
                 '''
-
-
-                
-
                                                 
             except Exception as e:
                 print("CameraStreamerProcess failed to stream images:",e,"\n")
@@ -450,8 +446,22 @@ class ImageProcess(WorkerProcess):
         print('straight ahead')
 
     # Function for car to look for a stopline
-    def _find_stopline(self):
-        print('found stopline')
+    def _find_stopline(self, thresh):
+        # expecting frame to be:
+        #   grayscale -> threshold
+
+        kernel_horizontal = np.ones((1, 25), dtype=np.uint8)
+        erode = cv2.erode(thresh, kernel_horizontal)
+
+        edges = cv2.Canny(image=erode, threshold1=100, threshold2=200)    
+        minLineLength = 150
+        maxLineGap = 5
+        lines = cv2.HoughLinesP(erode,1,np.pi/180,25,minLineLength,maxLineGap)
+        if lines is not None:
+
+            # for x1,y1,x2,y2 in lines[0]:
+            #     cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
+            print('found stopline')
 
     # Function for car to look for crosswalk lines 
     def _find_crosswalk(self):

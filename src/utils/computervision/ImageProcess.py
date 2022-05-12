@@ -98,9 +98,9 @@ class ImageProcess(WorkerProcess):
         self.HEIGHT = 300
         self.WIDTH = 300
         self.inPs = inPipes[0]
-        self.inDetectedPs = inPipes[1]
+        # self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
-        self.outFrame = outPipes[1]
+        # self.outFrame = outPipes[1]
         self.curr_steer_angle = 0.0
 
         self.rcBrain = RcBrainThread()
@@ -134,7 +134,7 @@ class ImageProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.inDetectedPs, self.outPs, self.outFrame))
+        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs))
         streamTh.daemon = True
         self.threads.append(streamTh)
 
@@ -151,7 +151,7 @@ class ImageProcess(WorkerProcess):
 
     
     # ===================================== SEND THREAD ==================================
-    def _process_image(self, inP, inDetections, outPs, outFrame):
+    def _process_image(self, inP, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -219,13 +219,13 @@ class ImageProcess(WorkerProcess):
         # For object detection
         ###########################################
         
-        # inputQueue = Queue(maxsize=1)
-        # outputQueue = Queue(maxsize=1)
-        # detectionOut = None
-        # print("[INFO] starting process...")
-        # p = Process(target=self.classify_frame, args=(self.net,inputQueue,outputQueue,))
-        # p.daemon = True
-        # p.start()
+        inputQueue = Queue(maxsize=1)
+        outputQueue = Queue(maxsize=1)
+        detectionOut = None
+        print("[INFO] starting process...")
+        p = Process(target=self.classify_frame, args=(self.net,inputQueue,outputQueue,))
+        p.daemon = True
+        p.start()
         
         ###########################################
 
@@ -259,26 +259,49 @@ class ImageProcess(WorkerProcess):
                 '''
                     start object detection
                 '''
-                self.detected = []
-                detections = inDetections.recv()
-                print('test0')
-                if detections is not None:
-                    for detection in detections:
+                # if inputqueue is empty, give current image to detector
+                if inputQueue.empty():
+                    inputQueue.put(image)
+                # grab deteciton if the outqueue is not empty
+                if not outputQueue.empty():
+                    detectionOut = outputQueue.out()
+                
+                # check if detections is not empty
+                if detectionOut is not None:
+                    # iterate through detections
+                    for detection in detectionOut:
                         objID = detection[0]
                         confidence = detection[1]
                         xmin = detection[2]
                         ymin = detection[3]
                         xmax = detection[4]
                         ymax = detection[5]
+
+                        # found objects within confidence threshold
+                        if confidence > self.confThreshold:
+                            print('test')
+
+
+                # self.detected = []
+                # detections = inDetections.recv()
+                # print('test0')
+                # if detections is not None:
+                #     for detection in detections:
+                #         objID = detection[0]
+                #         confidence = detection[1]
+                #         xmin = detection[2]
+                #         ymin = detection[3]
+                #         xmax = detection[4]
+                #         ymax = detection[5]
                         
-                        if confidence >= self.confThreshold:
-                            self.detected.append(detection)
+                #         if confidence >= self.confThreshold:
+                #             self.detected.append(detection)
                         
-                        # car found
-                        if objID == 0:
-                            # Need to estimate where car is (look for bottom)
-                            # self._overtake(outPs)
-                            print('found car')
+                #         # car found
+                #         if objID == 0:
+                #             # Need to estimate where car is (look for bottom)
+                #             # self._overtake(outPs)
+                #             print('found car')
                 '''
                     end object detection
                 '''

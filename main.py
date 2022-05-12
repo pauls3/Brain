@@ -69,7 +69,7 @@ def main():
     # =============================== HARDWARE ===============================================
     if enableStream:
         camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
-        imgStR, imgStS = Pipe(duplex = False)
+        # imgStR, imgStS = Pipe(duplex = False)
 
         '''if enableCameraSpoof:
             camSpoofer = CameraSpooferProcess([],[camStS],'vid')
@@ -82,12 +82,13 @@ def main():
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         # streamProc = CameraStreamerProcess([camStR], [rcShS])
-        streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
+        # streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
+        streamProc = ImageProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
 
-        objDetectorProc = ObjectDetection([imgStR], [outDetected])
-        allProcesses.append(objDetectorProc)
+        # objDetectorProc = ObjectDetection([imgStR], [outDetected])
+        # allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================
     #LocSys client process

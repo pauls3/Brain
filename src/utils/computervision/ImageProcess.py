@@ -318,9 +318,9 @@ class ImageProcess(WorkerProcess):
                         Looking for stopline (intersection!)
                     '''
 
-                    if self._find_stopline(thresh):
-                        self.state = 'at_intersection'
-                        continue
+                    # if self._find_stopline(thresh):
+                    #     self.state = 'at_intersection'
+                    #     continue
 
 
 

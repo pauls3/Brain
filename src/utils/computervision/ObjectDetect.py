@@ -144,6 +144,7 @@ class ObjectDetection(WorkerProcess):
             try:
                 if not inputQueue.empty():
                     frame = inputQueue.get()
+                    frame = frame.array
                     resframe = cv2.resize(frame, (300, 300))
                     blob = cv2.dnn.blobFromImage(resframe, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=False, crop=False)
                     net.setInput(blob)

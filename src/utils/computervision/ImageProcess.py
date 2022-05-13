@@ -259,27 +259,27 @@ class ImageProcess(WorkerProcess):
                 '''
                     start object detection
                 '''
-                self.detected = []
-                detections = inDetections.recv()
-                print('test0')
-                if detections is not None:
-                    for detection in detections:
-                        objID = detection[0]
-                        confidence = detection[1]
-                        xmin = detection[2]
-                        ymin = detection[3]
-                        xmax = detection[4]
-                        ymax = detection[5]
+                # self.detected = []
+                # detections = inDetections.recv()
+                # print('test0')
+                # if detections is not None:
+                #     for detection in detections:
+                #         objID = detection[0]
+                #         confidence = detection[1]
+                #         xmin = detection[2]
+                #         ymin = detection[3]
+                #         xmax = detection[4]
+                #         ymax = detection[5]
                         
-                        if confidence >= self.confThreshold:
-                            self.detected.append(detection)
-                            print(objID)
+                #         if confidence >= self.confThreshold:
+                #             self.detected.append(detection)
+                #             print(objID)
                         
-                        # car found
-                        if objID == 0:
-                            # Need to estimate where car is (look for bottom)
-                            # self._overtake(outPs)
-                            print('found car')
+                #         # car found
+                #         if objID == 0:
+                #             # Need to estimate where car is (look for bottom)
+                #             # self._overtake(outPs)
+                #             print('found car')
                 '''
                     end object detection
                 '''
@@ -370,7 +370,7 @@ class ImageProcess(WorkerProcess):
 
 
 
-                    cv2.imshow(winname, thresh)
+                    cv2.imshow(winname, image)
                     cv2.waitKey(1)
 
                     thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')

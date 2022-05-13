@@ -401,37 +401,37 @@ class ImageProcess(WorkerProcess):
                 passed_time = timer2 - timer1
 
                 # wait for incs2 to boot up
-                if passed_time > 15:
-                    self.detected = []
-                    detections = inDetections.recv()
-                    if detections is not None:
-                        for detection in detections:
-                            objID = detection[0]
-                            confidence = detection[1]
-                            xmin = detection[2]
-                            ymin = detection[3]
-                            xmax = detection[4]
-                            ymax = detection[5]
+                # if passed_time > 15:
+                #     self.detected = []
+                #     detections = inDetections.recv()
+                #     if detections is not None:
+                #         for detection in detections:
+                #             objID = detection[0]
+                #             confidence = detection[1]
+                #             xmin = detection[2]
+                #             ymin = detection[3]
+                #             xmax = detection[4]
+                #             ymax = detection[5]
                             
-                            if confidence >= self.confThreshold:
-                                # self.detected.append(detection)
-                                print(labels[objID])
-                                # cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
+                #             if confidence >= self.confThreshold:
+                #                 # self.detected.append(detection)
+                #                 print(labels[objID])
+                #                 # cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
 
-                                # #label
-                                # cv2.rectangle(image, (xmin-1, ymin-1),\
-                                # (xmin+70, ymin-10), (0,255,255), -1)
-                                # #labeltext
-                                # cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
-                                # (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
+                #                 # #label
+                #                 # cv2.rectangle(image, (xmin-1, ymin-1),\
+                #                 # (xmin+70, ymin-10), (0,255,255), -1)
+                #                 # #labeltext
+                #                 # cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
+                #                 # (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
 
 
                             
-                            # car found
-                            if objID == 0:
-                                # Need to estimate where car is (look for bottom)
-                                # self._overtake(outPs)
-                                print('found car')
+                #             # car found
+                #             if objID == 0:
+                #                 # Need to estimate where car is (look for bottom)
+                #                 # self._overtake(outPs)
+                #                 print('found car')
                 '''
                     end object detection
                 '''

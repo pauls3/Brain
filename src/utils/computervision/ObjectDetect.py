@@ -182,6 +182,7 @@ class ObjectDetection(WorkerProcess):
                     '''
                     #for outP in outPs:
                     outPs.send(out)
+                    print('out')
                 else:
                     outPs.send(None)
 

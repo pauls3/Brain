@@ -171,7 +171,7 @@ class ImageProcess(WorkerProcess):
 
         # self._send_command(outPs, ['forward_normal'])
         
-        # self._send_command(outPs, ['forward_normal'])
+        self._send_command(outPs, ['forward_fast'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))

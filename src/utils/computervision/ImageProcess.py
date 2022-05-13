@@ -106,7 +106,7 @@ class ImageProcess(WorkerProcess):
         self.rcBrain = RcBrainThread()
         self.servo = Servo(12)
         self.fStateMachine = FiniteStateMachine()
-        self.confThreshold = 0.5
+        self.confThreshold = 0.2
         self.state = 'lane_keeping'
         self.previousState = 'lane_keeping'
         self.turns = [] # the set path for the intersection turns
@@ -256,33 +256,7 @@ class ImageProcess(WorkerProcess):
                 #image = cv2.imread('path/to/file/...')
                 #image = cv2.resize(rawImage, (300, 300))
 
-                '''
-                    start object detection
-                '''
-                self.detected = []
-                detections = inDetections.recv()
-                print('test0')
-                if detections is not None:
-                    for detection in detections:
-                        objID = detection[0]
-                        confidence = detection[1]
-                        xmin = detection[2]
-                        ymin = detection[3]
-                        xmax = detection[4]
-                        ymax = detection[5]
-                        
-                        if confidence >= self.confThreshold:
-                            self.detected.append(detection)
-                            print(objID)
-                        
-                        # car found
-                        if objID == 0:
-                            # Need to estimate where car is (look for bottom)
-                            # self._overtake(outPs)
-                            print('found car')
-                '''
-                    end object detection
-                '''
+
 
 
 
@@ -392,10 +366,6 @@ class ImageProcess(WorkerProcess):
                 #     cmds = ['stop']
                 #     self._send_command(outPs, cmds)
 
-
-                cv2.imshow(winname, thresh)
-                cv2.waitKey(1)
-
                 thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
                 thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
                 hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
@@ -416,6 +386,33 @@ class ImageProcess(WorkerProcess):
                 #cv2.imshow(winname, edges)
                 # cv2.waitKey(1)
                 # print('image')
+
+                '''
+                    start object detection
+                '''
+                self.detected = []
+                detections = inDetections.recv()
+                if detections is not None:
+                    for detection in detections:
+                        objID = detection[0]
+                        confidence = detection[1]
+                        xmin = detection[2]
+                        ymin = detection[3]
+                        xmax = detection[4]
+                        ymax = detection[5]
+                        
+                        if confidence >= self.confThreshold:
+                            self.detected.append(detection)
+                            print(objID)
+                        
+                        # car found
+                        if objID == 0:
+                            # Need to estimate where car is (look for bottom)
+                            # self._overtake(outPs)
+                            print('found car')
+                '''
+                    end object detection
+                '''
 
 
                 passed_time = timer2 - timer1

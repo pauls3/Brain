@@ -83,7 +83,7 @@ def main():
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         # streamProc = CameraStreamerProcess([camStR], [rcShS])
         # streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
-        streamProc = ImageProcess([camStR], [rcShS])
+        streamProc = ImageProcess([camStR, inDetected], [rcShS])
         allProcesses.append(streamProc)
         
 

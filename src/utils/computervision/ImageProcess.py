@@ -340,7 +340,7 @@ class ImageProcess(WorkerProcess):
                     lane_lines_img, steering_angle, num_lines, stopLine = self._display_lines(rgb_img, lane_lines)
                     
                     # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
-                    # self._change_steering(steering_angle)
+                    self._change_steering(steering_angle)
 
 
 

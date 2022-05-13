@@ -394,6 +394,7 @@ class ImageProcess(WorkerProcess):
                 self.detected = []
                 detections = inDetections.recv()
                 print(detections)
+                print('********obj_detection_image_Process')
                 if detections is not None:
                     for detection in detections:
                         objID = detection[0]

@@ -183,6 +183,8 @@ class ObjectDetection(WorkerProcess):
                     '''
                     #for outP in outPs:
                     outPs.send(out)
+                else:
+                    outPs.send(None)
 
                 # if image is not None:
                 stamp, image = inP.recv()

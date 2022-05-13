@@ -250,6 +250,10 @@ class ImageProcess(WorkerProcess):
                 stamps, rawImage = inP.recv()
                 # resize image to 300x300
                 image = cv2.resize(rawImage, (300, 300))
+                
+                cv2.imshow(winname, image)
+                cv2.waitKey(1)                
+
 
 
                 # outFrame.send(image)
@@ -266,6 +270,7 @@ class ImageProcess(WorkerProcess):
                     Lane keeping
                 '''
                 if self.state == 'lane_keeping':
+
                     continue
                     # self._lane_keeping(image)
                     # convert to rgb

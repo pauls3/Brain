@@ -29,7 +29,7 @@
 import socket
 import struct
 import time
-import numpy as np
+# import numpy as np
 import json
 
 from threading       import Thread

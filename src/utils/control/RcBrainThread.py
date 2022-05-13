@@ -77,7 +77,7 @@ class RcBrainThread:
         # self.normalSpeed        =   12.0
         self.normalSpeed        =   14.0
         self.slowSpeed          =   9.0
-        self.fastSpeed          =   30.0
+        self.fastSpeed          =   25.0
 
         self.startSteerAngle    =   10.0
 

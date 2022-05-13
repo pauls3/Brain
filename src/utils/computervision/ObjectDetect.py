@@ -162,6 +162,7 @@ class ObjectDetection(WorkerProcess):
                     if confidence > 0: #ignore garbage
                         inference.extend((obj_type,confidence,xmin,ymin,xmax,ymax))
                         data_out.append(inference)
+                        print(labels[obj_type], confidence)
                     if confidence > 20:
                         print(labels[obj_type])
 

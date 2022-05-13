@@ -171,9 +171,9 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 3:
                 break
 
-        # self._send_command(outPs, ['forward_normal'])
+        self._send_command(outPs, ['forward_normal'])
         
-        self._send_command(outPs, ['forward_fast'])
+        # self._send_command(outPs, ['forward_fast'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -523,10 +523,10 @@ class ImageProcess(WorkerProcess):
             Looking for stopline (intersection!)
         '''
 
-        if self._find_stopline(thresh):
-            self.state = 'at_intersection'
+        # if self._find_stopline(thresh):
+        #     self.state = 'at_intersection'
 
-            return
+        #     return
 
         # get edges using Canny algorithm
         edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)

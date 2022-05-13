@@ -171,9 +171,9 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 3:
                 break
 
-        # self._send_command(outPs, ['forward_normal'])
+        self._send_command(outPs, ['forward_normal'])
         
-        self._send_command(outPs, ['forward_fast'])
+        # self._send_command(outPs, ['forward_fast'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))

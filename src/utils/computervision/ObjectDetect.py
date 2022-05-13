@@ -176,6 +176,7 @@ class ObjectDetection(WorkerProcess):
 
                 
                 if not outputQueue.empty():
+                    print('out')
                     out = outputQueue.get()
                     '''
                         output the detections

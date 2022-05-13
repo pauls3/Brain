@@ -106,7 +106,7 @@ class ImageProcess(WorkerProcess):
         self.rcBrain = RcBrainThread()
         self.servo = Servo(12)
         self.fStateMachine = FiniteStateMachine()
-        self.confThreshold = 0.2
+        self.confThreshold = 0.5
         self.state = 'lane_keeping'
         self.previousState = 'lane_keeping'
         self.turns = [] # the set path for the intersection turns
@@ -394,11 +394,8 @@ class ImageProcess(WorkerProcess):
 
                 # wait for incs2 to boot up
                 if passed_time > 15:
-                    print('********obj_detection_image_Process')
                     self.detected = []
                     detections = inDetections.recv()
-                    print(detections)
-                    print('********obj_detection_image_Process')
                     if detections is not None:
                         for detection in detections:
                             objID = detection[0]

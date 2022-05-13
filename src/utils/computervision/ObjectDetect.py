@@ -162,6 +162,8 @@ class ObjectDetection(WorkerProcess):
                     if confidence > 0: #ignore garbage
                         inference.extend((obj_type,confidence,xmin,ymin,xmax,ymax))
                         data_out.append(inference)
+                    if confidence > 20:
+                        print(labels[obj_type])
 
                     outputQueue.put(data_out)
                 else:
@@ -177,7 +179,6 @@ class ObjectDetection(WorkerProcess):
                 
                 if not outputQueue.empty():
                     out = outputQueue.get()
-                    print(out)
                     '''
                         output the detections
                     '''

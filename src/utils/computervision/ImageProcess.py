@@ -163,7 +163,7 @@ class ImageProcess(WorkerProcess):
         cmds = ['pid', 'stop']
         self._send_command(outPs, cmds)
 
-        self._test_steering(0.0)
+        self._test_steering(0.1)
 
         timer1 = time.time()
         while True:
@@ -173,7 +173,7 @@ class ImageProcess(WorkerProcess):
 
         # self._send_command(outPs, ['forward_normal'])
         
-        # self._send_command(outPs, ['forward_fast'])
+        self._send_command(outPs, ['forward_fast'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -266,6 +266,7 @@ class ImageProcess(WorkerProcess):
                     Lane keeping
                 '''
                 if self.state == 'lane_keeping':
+                    # continue
                     self._lane_keeping(image)
                     # convert to rgb
                     # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -433,8 +434,8 @@ class ImageProcess(WorkerProcess):
                 # cv2.imshow(winname, image)
                 # cv2.waitKey(1)
 
-                if self.state == 'at_intersection':
-                    self._send_command(outPs, ['stop'])
+                # if self.state == 'at_intersection':
+                #     self._send_command(outPs, ['stop'])
                 
                                                 
             except Exception as e:

@@ -98,7 +98,7 @@ class ImageProcess(WorkerProcess):
         self.HEIGHT = 300
         self.WIDTH = 300
         self.inPs = inPipes[0]
-        self.inDetectedPs = inPipes[1]
+        # self.inDetectedPs = inPipes[1]
         self.outPs = outPipes[0]
         # self.outFrame = outPipes[1]
         self.curr_steer_angle = 0.0
@@ -134,7 +134,7 @@ class ImageProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.inDetectedPs, self.outPs))
+        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs))
         streamTh.daemon = True
         self.threads.append(streamTh)
 
@@ -151,7 +151,7 @@ class ImageProcess(WorkerProcess):
 
     
     # ===================================== SEND THREAD ==================================
-    def _process_image(self, inP, inDetections, outPs):
+    def _process_image(self, inP, outPs):
         """Sending the frames received thought the input pipe to remote client by using the created socket connection. 
         
         Parameters
@@ -392,38 +392,38 @@ class ImageProcess(WorkerProcess):
                 '''
                 passed_time = timer2 - timer1
 
-                # wait for incs2 to boot up
-                if passed_time > 15:
-                    self.detected = []
-                    detections = inDetections.recv()
-                    if detections is not None:
-                        for detection in detections:
-                            objID = detection[0]
-                            confidence = detection[1]
-                            xmin = detection[2]
-                            ymin = detection[3]
-                            xmax = detection[4]
-                            ymax = detection[5]
+                # # wait for incs2 to boot up
+                # if passed_time > 15:
+                #     self.detected = []
+                #     detections = inDetections.recv()
+                #     if detections is not None:
+                #         for detection in detections:
+                #             objID = detection[0]
+                #             confidence = detection[1]
+                #             xmin = detection[2]
+                #             ymin = detection[3]
+                #             xmax = detection[4]
+                #             ymax = detection[5]
                             
-                            if confidence >= self.confThreshold:
-                                # self.detected.append(detection)
-                                print(labels[objID])
-                                # cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
+                #             if confidence >= self.confThreshold:
+                #                 # self.detected.append(detection)
+                #                 print(labels[objID])
+                #                 # cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
 
-                                # #label
-                                # cv2.rectangle(image, (xmin-1, ymin-1),\
-                                # (xmin+70, ymin-10), (0,255,255), -1)
-                                # #labeltext
-                                # cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
-                                # (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
+                #                 # #label
+                #                 # cv2.rectangle(image, (xmin-1, ymin-1),\
+                #                 # (xmin+70, ymin-10), (0,255,255), -1)
+                #                 # #labeltext
+                #                 # cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
+                #                 # (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
 
 
                             
-                            # car found
-                            if objID == 0:
-                                # Need to estimate where car is (look for bottom)
-                                # self._overtake(outPs)
-                                print('found car')
+                #             # car found
+                #             if objID == 0:
+                #                 # Need to estimate where car is (look for bottom)
+                #                 # self._overtake(outPs)
+                #                 print('found car')
                 '''
                     end object detection
                 '''

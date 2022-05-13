@@ -517,10 +517,10 @@ class ImageProcess(WorkerProcess):
             Looking for stopline (intersection!)
         '''
 
-        if self._find_stopline(thresh):
-            self.state = 'at_intersection'
+        # if self._find_stopline(thresh):
+        #     self.state = 'at_intersection'
 
-            return
+        #     return
 
         # get edges using Canny algorithm
         edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)

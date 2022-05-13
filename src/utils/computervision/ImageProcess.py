@@ -390,35 +390,38 @@ class ImageProcess(WorkerProcess):
                 '''
                     start object detection
                 '''
-                print('********obj_detection_image_Process')
-                self.detected = []
-                detections = inDetections.recv()
-                print(detections)
-                print('********obj_detection_image_Process')
-                if detections is not None:
-                    for detection in detections:
-                        objID = detection[0]
-                        confidence = detection[1]
-                        xmin = detection[2]
-                        ymin = detection[3]
-                        xmax = detection[4]
-                        ymax = detection[5]
-                        
-                        if confidence >= self.confThreshold:
-                            self.detected.append(detection)
-                            print(objID)
-                        
-                        # car found
-                        if objID == 0:
-                            # Need to estimate where car is (look for bottom)
-                            # self._overtake(outPs)
-                            print('found car')
+                passed_time = timer2 - timer1
+
+                # wait for incs2 to boot up
+                if passed_time > 15:
+                    print('********obj_detection_image_Process')
+                    self.detected = []
+                    detections = inDetections.recv()
+                    print(detections)
+                    print('********obj_detection_image_Process')
+                    if detections is not None:
+                        for detection in detections:
+                            objID = detection[0]
+                            confidence = detection[1]
+                            xmin = detection[2]
+                            ymin = detection[3]
+                            xmax = detection[4]
+                            ymax = detection[5]
+                            
+                            if confidence >= self.confThreshold:
+                                self.detected.append(detection)
+                                print(objID)
+                            
+                            # car found
+                            if objID == 0:
+                                # Need to estimate where car is (look for bottom)
+                                # self._overtake(outPs)
+                                print('found car')
                 '''
                     end object detection
                 '''
 
 
-                passed_time = timer2 - timer1
                 
                                                 
             except Exception as e:

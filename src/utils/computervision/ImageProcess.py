@@ -199,7 +199,10 @@ class ImageProcess(WorkerProcess):
         
         stencil = stencil_gap
         stencil_prime = stencil_gap_prime
-        
+        labels = []
+        labels_path = '/home/pi/repos/Brain/src/utils/openvino/labels.txt'
+        with open(labels_path, 'r') as f:
+            labels = [x.strip() for x in f]
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
         
@@ -255,9 +258,6 @@ class ImageProcess(WorkerProcess):
                 '''
                 #image = cv2.imread('path/to/file/...')
                 #image = cv2.resize(rawImage, (300, 300))
-
-
-
 
 
                 '''
@@ -344,8 +344,8 @@ class ImageProcess(WorkerProcess):
 
 
 
-                    cv2.imshow(winname, image)
-                    cv2.waitKey(1)
+                    # cv2.imshow(winname, image)
+                    # cv2.waitKey(1)
 
                     thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
                     thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
@@ -366,17 +366,17 @@ class ImageProcess(WorkerProcess):
                 #     cmds = ['stop']
                 #     self._send_command(outPs, cmds)
 
-                thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
-                thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
-                hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
-                hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
+                # thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                # thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                # hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                # hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
 
-                if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
-                    print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
-                    Pthresh0 = thresh0
-                    Pthresh1 = thresh1
-                    Phough0 = hough0
-                    Phough1 = hough1
+                # if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                #     print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                #     Pthresh0 = thresh0
+                #     Pthresh1 = thresh1
+                #     Phough0 = hough0
+                #     Phough1 = hough1
 
 
 
@@ -406,8 +406,18 @@ class ImageProcess(WorkerProcess):
                             ymax = detection[5]
                             
                             if confidence >= self.confThreshold:
-                                self.detected.append(detection)
-                                print(objID)
+                                # self.detected.append(detection)
+                                # print(objID)
+                                cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
+
+                                #label
+                                cv2.rectangle(image, (xmin-1, ymin-1),\
+                                (xmin+70, ymin-10), (0,255,255), -1)
+                                #labeltext
+                                cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
+                                (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
+
+
                             
                             # car found
                             if objID == 0:
@@ -418,7 +428,8 @@ class ImageProcess(WorkerProcess):
                     end object detection
                 '''
 
-
+                cv2.imshow(winname, image)
+                cv2.waitKey(1)
                 
                                                 
             except Exception as e:
@@ -552,8 +563,8 @@ class ImageProcess(WorkerProcess):
         # self.curr_steer_angle = self.stabilize_steering_angle(self.curr_steer_angle, steering_angle, num_lines, )
         # self._change_steering(steering_angle)
 
-        # cv2.imshow(winname, thresh)
-        # cv2.waitKey(1)
+        cv2.imshow(winname, rgb_img)
+        cv2.waitKey(1)
 
 
     # Function for car to make a right turn at an intersection
@@ -796,38 +807,6 @@ class ImageProcess(WorkerProcess):
                 flag = False
                 self._send_command(outPs, stop_cmd)
 
-
-
-    def classify_frame(self, net, inputQueue, outputQueue):
-    # keep looping
-        while True:
-            # check to see if there is a frame in our input queue
-            if not inputQueue.empty():
-                # grab the frame from the input queue, resize it, and
-                # construct a blob from it
-                frame = inputQueue.get()
-                # resframe = cv2.resize(frame, (300, 300))
-                blob = cv2.dnn.blobFromImage(frame, 1, size=(300, 300), mean=(127.5,127.5,127.5), swapRB=False, crop=False)
-                net.setInput(blob)
-                out = net.forward()
-
-                data_out = []
-
-                for detection in out.reshape(-1, 7):
-                    inference = []
-                    obj_type = int(detection[1]-1)
-                    confidence = float(detection[2])
-                    xmin = int(detection[3] * frame.shape[1])
-                    ymin = int(detection[4] * frame.shape[0])
-                    xmax = int(detection[5] * frame.shape[1])
-                    ymax = int(detection[6] * frame.shape[0])
-
-                    if confidence > 0: #ignore garbage
-                        inference.extend((obj_type,confidence,xmin,ymin,xmax,ymax))
-                        data_out.append(inference)
-
-                outputQueue.put(data_out)
-        
 
 
     def _avg_slope_intersect(self, lines):

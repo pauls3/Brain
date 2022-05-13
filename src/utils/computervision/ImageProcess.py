@@ -163,6 +163,8 @@ class ImageProcess(WorkerProcess):
         cmds = ['pid', 'stop']
         self._send_command(outPs, cmds)
 
+        self._test_steering(0.0)
+
         timer1 = time.time()
         while True:
             timer2 = time.time()
@@ -171,7 +173,7 @@ class ImageProcess(WorkerProcess):
 
         # self._send_command(outPs, ['forward_normal'])
         
-        self._send_command(outPs, ['forward_fast'])
+        # self._send_command(outPs, ['forward_fast'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -590,7 +592,7 @@ class ImageProcess(WorkerProcess):
                 steerFlag = 1
 
             if timer2 - timer1 > 12 and steerFlag == 1:
-                self._test_steering(0.0)
+                self._test_steering(0.1)
                 steerFlag = 2
                 flag = False
         self.state = 'lane_keeping'

@@ -69,14 +69,14 @@ def main():
     # =============================== HARDWARE ===============================================
     if enableStream:
         camStR, camStS = Pipe(duplex = False)           # camera  ->  streamer
-        imgStR, imgStS = Pipe(duplex = False)
+        # imgStR, imgStS = Pipe(duplex = False)
 
         '''if enableCameraSpoof:
             camSpoofer = CameraSpooferProcess([],[camStS],'vid')
             allProcesses.append(camSpoofer)
 
         else:'''
-        camProc = CameraProcess([],[camStS, imgStS])
+        camProc = CameraProcess([],[camStS])
         allProcesses.append(camProc)
 
         #streamProc = CameraStreamerProcess([camStR], [outCmd])

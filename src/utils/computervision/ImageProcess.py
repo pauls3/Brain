@@ -200,9 +200,9 @@ class ImageProcess(WorkerProcess):
         stencil = stencil_gap
         stencil_prime = stencil_gap_prime
         labels = []
-        labels_path = '/home/pi/repos/Brain/src/utils/openvino/labels.txt'
-        with open(labels_path, 'r') as f:
-            labels = [x.strip() for x in f]
+        # labels_path = '/home/pi/repos/Brain/src/utils/openvino/labels.txt'
+        # with open(labels_path, 'r') as f:
+        #     labels = [x.strip() for x in f]
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)
         
@@ -347,17 +347,17 @@ class ImageProcess(WorkerProcess):
                     # cv2.imshow(winname, image)
                     # cv2.waitKey(1)
 
-                    thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
-                    thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
-                    hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
-                    hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
+                    # thresh0 = cv2.getTrackbarPos('Thresh0', 'RebelDynamics')
+                    # thresh1 = cv2.getTrackbarPos('Thresh1', 'RebelDynamics')
+                    # hough0 = cv2.getTrackbarPos('HoughGap', 'RebelDynamics')
+                    # hough1 = cv2.getTrackbarPos('HoughLines', 'RebelDynamics')
 
-                    if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
-                        print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
-                        Pthresh0 = thresh0
-                        Pthresh1 = thresh1
-                        Phough0 = hough0
-                        Phough1 = hough1
+                    # if (thresh0 != Pthresh0) | (thresh1 != Pthresh1) | (hough1 != Phough1) | (hough0 != Phough0):
+                    #     print("(thresh0 = %d , thresh1 = %d, hough1 = %d, hough0 = %d)" % (thresh0, thresh1, hough1, hough0))
+                    #     Pthresh0 = thresh0
+                    #     Pthresh1 = thresh1
+                    #     Phough0 = hough0
+                    #     Phough1 = hough1
                     '''
                         end lanekeeping
                     '''
@@ -428,8 +428,8 @@ class ImageProcess(WorkerProcess):
                     end object detection
                 '''
 
-                cv2.imshow(winname, image)
-                cv2.waitKey(1)
+                # cv2.imshow(winname, image)
+                # cv2.waitKey(1)
                 
                                                 
             except Exception as e:
@@ -441,6 +441,8 @@ class ImageProcess(WorkerProcess):
 
 
     def _lane_keeping(self, image):
+
+        print('lane keeping')
 
         winname = 'RebelDynamics'
         cv2.namedWindow(winname)

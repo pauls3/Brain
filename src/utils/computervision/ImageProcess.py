@@ -281,9 +281,9 @@ class ImageProcess(WorkerProcess):
                     # get threshold
                     # (199, 170) for plastic ground
                     ## Test track
-                    # ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
+                    ret, thresh = cv2.threshold(blur_img, 228, 169, cv2.THRESH_BINARY)
                     ## Final Track (afternoon)
-                    ret, thresh = cv2.threshold(blur_img, 180, 255, cv2.THRESH_BINARY)
+                    # ret, thresh = cv2.threshold(blur_img, 180, 255, cv2.THRESH_BINARY)
                     '''
                         Commented line is used to adjust parameters during testing!
                     '''

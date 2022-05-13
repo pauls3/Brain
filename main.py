@@ -61,10 +61,10 @@ def main():
     # =============================== INITIALIZING PROCESSES =================================
     allProcesses = list()
 
-    inCmd, outCmd   = Pipe(duplex = False)
+    # inCmd, outCmd   = Pipe(duplex = False)
     rcShR, rcShS   = Pipe(duplex = False)           # rc      ->  serial handler
     
-    inImg, outImg = Pipe(duplex = False)
+    # inImg, outImg = Pipe(duplex = False)
     inDetected, outDetected = Pipe(duplex = False)
     # =============================== HARDWARE ===============================================
     if enableStream:
@@ -83,12 +83,12 @@ def main():
         #streamProc = CameraStreamerProcess([camStR], [outCmd])
         # streamProc = CameraStreamerProcess([camStR], [rcShS])
         # streamProc = ImageProcess([camStR, inDetected], [rcShS, imgStS])
-        streamProc = ImageProcess([camStR, inDetected], [rcShS])
+        streamProc = ImageProcess([camStR], [rcShS])
         allProcesses.append(streamProc)
         
 
-        objDetectorProc = ObjectDetection([imgStR], [outDetected])
-        allProcesses.append(objDetectorProc)
+        # objDetectorProc = ObjectDetection([imgStR], [outDetected])
+        # allProcesses.append(objDetectorProc)
 
     # =============================== DATA ===================================================
     #LocSys client process

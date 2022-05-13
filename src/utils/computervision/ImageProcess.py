@@ -407,15 +407,15 @@ class ImageProcess(WorkerProcess):
                             
                             if confidence >= self.confThreshold:
                                 # self.detected.append(detection)
-                                # print(objID)
-                                cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
+                                print(labels[objID])
+                                # cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color=(0, 255, 255))
 
-                                #label
-                                cv2.rectangle(image, (xmin-1, ymin-1),\
-                                (xmin+70, ymin-10), (0,255,255), -1)
-                                #labeltext
-                                cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
-                                (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
+                                # #label
+                                # cv2.rectangle(image, (xmin-1, ymin-1),\
+                                # (xmin+70, ymin-10), (0,255,255), -1)
+                                # #labeltext
+                                # cv2.putText(image,' '+labels[objID]+' '+str(round(confidence,2)),\
+                                # (xmin,ymin-2), cv2.FONT_HERSHEY_SIMPLEX, 0.3,(0,0,0),1,cv2.LINE_AA)
 
 
                             

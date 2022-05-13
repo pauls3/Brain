@@ -134,7 +134,7 @@ class ImageProcess(WorkerProcess):
         #self.listener.daemon = self.daemon
         #self.threads.append(self.listener)
         
-        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs, self.inDetections))
+        streamTh = Thread(name='ProcessImageThread',target = self._process_image, args= (self.inPs, self.outPs, self.inDetectedPs))
         streamTh.daemon = True
         self.threads.append(streamTh)
 

@@ -128,9 +128,9 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 	if queuepulls ==1:
 		timer2 = time.time()
 	# Capture frame-by-frame
-	print(type(frame))
+	# print(type(frame))
 	frame = frame.array
-	print(type(frame))
+	# print(type(frame))
 
 	# if the input queue *is* empty, give the current frame to
 	# classify

@@ -193,6 +193,9 @@ class ObjectDetection(WorkerProcess):
                 # if image is not None:
                 stamp, image = inP.recv()
                 # rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                cv2.imshow('image', image)
+                cv2.waitKey(1)                
+
 
                 
             except Exception as e:

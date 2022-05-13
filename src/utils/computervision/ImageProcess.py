@@ -251,8 +251,8 @@ class ImageProcess(WorkerProcess):
                 # resize image to 300x300
                 image = cv2.resize(rawImage, (300, 300))
                 
-                cv2.imshow(winname, image)
-                cv2.waitKey(1)                
+                # cv2.imshow(winname, image)
+                # cv2.waitKey(1)                
 
 
 

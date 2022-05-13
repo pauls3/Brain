@@ -430,6 +430,9 @@ class ImageProcess(WorkerProcess):
 
                 # cv2.imshow(winname, image)
                 # cv2.waitKey(1)
+
+                if self.state == 'at_intersection':
+                    self._send_command(outPs, ['stop'])
                 
                                                 
             except Exception as e:
@@ -494,10 +497,10 @@ class ImageProcess(WorkerProcess):
         #gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # crop with mask
         # img_crop_gray = cv2.bitwise_and(gray_img, gray_img, mask=stencil)
-        img_crop = cv2.bitwise_and(image, image, mask=stencil)
+        # img_crop = cv2.bitwise_and(image, image, mask=stencil)
         # convert to grayscale
-        img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
-        # img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # img_crop_gray = cv2.cvtColor(img_crop, cv2.COLOR_BGR2GRAY)
+        img_crop_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # blur
         #blur_img = cv2.blur(img_crop_gray, (10,10))
         blur_img = cv2.GaussianBlur(img_crop_gray, (5,5), 0)
@@ -517,10 +520,10 @@ class ImageProcess(WorkerProcess):
             Looking for stopline (intersection!)
         '''
 
-        # if self._find_stopline(thresh):
-        #     self.state = 'at_intersection'
+        if self._find_stopline(thresh):
+            self.state = 'at_intersection'
 
-        #     return
+            return
 
         # get edges using Canny algorithm
         edges = cv2.Canny(image=thresh, threshold1=100, threshold2=200)

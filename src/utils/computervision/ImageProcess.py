@@ -171,9 +171,9 @@ class ImageProcess(WorkerProcess):
             if timer2 - timer1 > 3:
                 break
 
-        self._send_command(outPs, ['forward_normal'])
+        # self._send_command(outPs, ['forward_normal'])
         
-        # self._send_command(outPs, ['forward_fast'])
+        self._send_command(outPs, ['forward_fast'])
         
 
         stencil_no_gap = np.zeros((self.HEIGHT, self.WIDTH))
@@ -1065,7 +1065,8 @@ class ImageProcess(WorkerProcess):
         #       90:     center
         #       90-180: turn right
         # max_angle = 0.75
-        max_angle = 0.85
+        # max_angle = 0.85
+        max_angle = 0.95
         correct_angle = 0
 
         if angle < 90:

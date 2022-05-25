@@ -2,7 +2,7 @@
 
 This repo is Team Rebel Dynamics' attempt in the Bosch Future Mobility Challenge 2022.
 
-<img src="[https://user-images.githubusercontent.com/link-to-your-image.png](https://github.com/pauls3/Brain/blob/master/images/IMG-20220514-WA0001.jpg)" width="200" />
+![alt text](https://github.com/pauls3/Brain/blob/master/images/me_resized.jpg)
 
 We mainly worked on getting object detection, using OpenVino, and lane centering to work together in Python. It was a great experience to participate in this competition and I highly recommend anyone who is able to compete to take part in it!
 

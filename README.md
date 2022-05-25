@@ -1,10 +1,5 @@
-# BFMC - Brain Project
+# BFMC - Brain Project for Team Rebel Dynamics from University of Nevada, Las Vegas
 
-The project contains all the provided code for the RPi, more precisely:
-- Firmware for communicating with the Nucleo and control the robot movements (Speed with constant current consumption, speed with constant speed and steering);
-- Firmware for gathering data from the sensors (IMU and Camera);
-- API's for communicating with the environmental servers at Bosch location;
-- Simulated servers for the API's.
+This repo is Team Rebel Dynamics' attempt in the Bosch Future Mobility Challenge 2022.
 
-## The documentation is available in more details here:
-[Documentation](https://boschfuturemobility.com/brain/)
+![alt text](https://github.com/pauls3/Brain/blob/master/images/0911_BFMC-14.05.2022-NIC_1746-%C2%A9-Nicu-Cherciu.jpg)

@@ -1,6 +1,6 @@
 # BFMC - Brain Project for Team Rebel Dynamics from University of Nevada, Las Vegas
 
-This repo is Team Rebel Dynamics' attempt in the Bosch Future Mobility Challenge 2022.
+This repo is Team Rebel Dynamics' attempt in the Bosch Future Mobility Challenge (BFMC) 2022. [This was forked from Bosch's Brain repo.](https://github.com/ECC-BFMC/Brain). The rest of the repos related to BFMC are located [here](https://github.com/ECC-BFMC/).
 
 ![alt text](https://github.com/pauls3/Brain/blob/master/images/me_resized.jpg)
 

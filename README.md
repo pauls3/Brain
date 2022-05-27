@@ -1,6 +1,6 @@
 # BFMC - Brain Project for Team Rebel Dynamics from University of Nevada, Las Vegas
 
-This repo is Team Rebel Dynamics' attempt in the Bosch Future Mobility Challenge (BFMC) 2022. [This was forked from Bosch's Brain repo.](https://github.com/ECC-BFMC/Brain). The rest of the repos related to BFMC are located [here](https://github.com/ECC-BFMC/).
+This repo is Team Rebel Dynamics' attempt in the Bosch Future Mobility Challenge (BFMC) 2022. [This was forked from Bosch's Brain repo.](https://github.com/ECC-BFMC/Brain) The rest of the repos related to BFMC are located [here](https://github.com/ECC-BFMC/).
 
 ![alt text](https://github.com/pauls3/Brain/blob/master/images/me_resized.jpg)
 
@@ -51,13 +51,13 @@ Before training a deep-learning object-detection model, we first needed to creat
 ![alt text](https://github.com/pauls3/Brain/blob/master/images/class_distribution.png)
 
 ### Deep-Learning Model
-We used the SSD Mobilenet v2 COCO model in TensorFlow 1.14. We performed transfer learning on this model using our custom dataset using a 70 (train) / 20 (validation) / 10 (test) split. The splits were done by partitioning both the "clean" and "noisy" sets seperatly to create a balanced training, validation, and test splits. After training the model until the validation curved flattened, we tested the model and got the following results:
+We used the (SSD Mobilenet v2 COCO model in TensorFlow 1.14.)[https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md] We performed transfer learning on this model using our custom dataset using a 70 (train) / 20 (validation) / 10 (test) split. The splits were done by partitioning both the "clean" and "noisy" sets seperatly to create a balanced training, validation, and test splits. After training the model until the validation curved flattened, we tested the model and got the following results:
   * Average Precision @ IoU = 0.50:0.95 = 0.738
   * Average Precision @ IoU = 0.50      = 0.991
   * Average Precision @ IoU = 0.75      = 0.907
 
 ### OpenVINO
-Running the model on the Raspberry Pi 4 only yielded around 2 frames-per-second. This was not good enough performance for us, so we used an Intel Neural Compute Stick 2 to run inference (like an GPU for the RaspPi). This boosted the fps to ~10-13. To run the TensorFlow model on the Intel Neural Compute Stick, we had to conver the model to OpenVINO.
+Running the model on the Raspberry Pi 4 only yielded around 2 frames-per-second. This was not good enough performance for us, so we used an Intel Neural Compute Stick 2 to run inference (like an GPU for the RaspPi). This boosted the fps to ~10-13. To run the TensorFlow model on the Intel Neural Compute Stick, we had to convert the model to (OpenVINO)[https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/overview.html].
 
 ![alt text](https://github.com/pauls3/Brain/blob/master/images/object_detection_0.gif)
 ![alt text](https://github.com/pauls3/Brain/blob/master/images/object_detection_1.gif)

@@ -51,7 +51,7 @@ Before training a deep-learning object-detection model, we first needed to creat
 ![alt text](https://github.com/pauls3/Brain/blob/master/images/class_distribution.png)
 
 ### Deep-Learning Model
-We used the (SSD Mobilenet v2 COCO model in TensorFlow 1.14.)[https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md] We performed transfer learning on this model using our custom dataset using a 70 (train) / 20 (validation) / 10 (test) split. The splits were done by partitioning both the "clean" and "noisy" sets seperatly to create a balanced training, validation, and test splits. After training the model until the validation curved flattened, we tested the model and got the following results:
+We trained and tested multiple models, like YOLOv5, RESNET, and SSD. We ended up using SSD Mobilenet v2 COCO model in TensorFlow 1.14 as that was the best performing model for us. [https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1_detection_zoo.md] We performed transfer learning on this model using our custom dataset using a 70 (train) / 20 (validation) / 10 (test) split. The splits were done by partitioning both the "clean" and "noisy" sets seperatly to create a balanced training, validation, and test splits. After training the model until the validation curved flattened, we tested the model and got the following results:
   * Average Precision @ IoU = 0.50:0.95 = 0.738
   * Average Precision @ IoU = 0.50      = 0.991
   * Average Precision @ IoU = 0.75      = 0.907
